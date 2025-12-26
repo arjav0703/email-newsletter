@@ -1,14 +1,16 @@
 use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, dev::Server, web};
 use anyhow::Result;
 
-pub fn run() -> Result<Server> {
+pub fn run(address: &str) -> Result<Server> {
+    println!("Starting server at http://{}", address);
+
     let server = HttpServer::new(|| {
         App::new()
             .route("/", web::get().to(greet))
             // .route("/{name}", web::get().to(greet))
             .route("/status", web::get().to(status_report))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(address)?
     .run();
 
     Ok(server)

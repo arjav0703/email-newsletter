@@ -32,7 +32,19 @@ struct FormData {
     email: String,
 }
 
+impl FormData {
+    pub fn validate(&self) -> bool {
+        !self.name.is_empty() && self.validate_email()
+    }
+
+    fn validate_email(&self) -> bool {
+        self.email.contains('@')
+    }
+}
+
 async fn subscribe(form: web::Form<FormData>) -> HttpResponse {
-    dbg!(&form);
+    if !form.validate() {
+        return HttpResponse::BadRequest().finish();
+    }
     HttpResponse::Ok().finish()
 }

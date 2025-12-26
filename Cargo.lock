@@ -433,6 +433,7 @@ dependencies = [
  "anyhow",
  "rand",
  "reqwest",
+ "serde",
  "tokio",
 ]
 

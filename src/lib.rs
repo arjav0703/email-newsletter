@@ -9,6 +9,7 @@ pub fn run(address: &str) -> Result<Server> {
             .route("/", web::get().to(greet))
             // .route("/{name}", web::get().to(greet))
             .route("/status", web::get().to(status_report))
+            .route("/subscribe", web::post().to(subscribe))
     })
     .bind(address)?
     .run();
@@ -22,5 +23,16 @@ async fn greet(req: HttpRequest) -> impl Responder {
 }
 
 async fn status_report() -> HttpResponse {
+    HttpResponse::Ok().finish()
+}
+
+#[derive(serde::Deserialize, Debug)]
+struct FormData {
+    name: String,
+    email: String,
+}
+
+async fn subscribe(form: web::Form<FormData>) -> HttpResponse {
+    dbg!(&form);
     HttpResponse::Ok().finish()
 }

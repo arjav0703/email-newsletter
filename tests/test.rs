@@ -46,5 +46,6 @@ async fn test_subscribe() {
             "Failed for body: {}",
             body
         );
+        println!("Test passed for body: {}", body);
     }
 }

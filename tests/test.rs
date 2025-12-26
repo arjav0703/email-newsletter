@@ -18,3 +18,33 @@ async fn spawn_app() -> String {
 
     address
 }
+
+#[tokio::test]
+async fn test_subscribe() {
+    let address = spawn_app().await;
+    let test_data = vec![
+        ("name=le%20guin&email=ursula_le_guin%40gmail.com", 200),
+        ("name=le%20guin", 400),
+        ("email=ursula_le_guin%40gmail.com", 400),
+        ("", 400),
+    ];
+
+    let client = reqwest::Client::new();
+
+    for (body, expected_status) in test_data {
+        let response = client
+            .post(format!("http://{address}/subscribe"))
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.");
+
+        assert_eq!(
+            response.status().as_u16(),
+            expected_status,
+            "Failed for body: {}",
+            body
+        );
+    }
+}

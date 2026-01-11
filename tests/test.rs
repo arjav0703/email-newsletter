@@ -19,6 +19,8 @@ async fn spawn_app() -> String {
     address
 }
 
+use email_newsletter::config::Settings;
+use sqlx::{Connection, PgConnection};
 #[tokio::test]
 async fn test_subscribe() {
     let address = spawn_app().await;
@@ -28,6 +30,13 @@ async fn test_subscribe() {
         ("email=ursula_le_guin%40gmail.com", 400),
         ("", 400),
     ];
+
+    let config = Settings::from_yaml()
+        .await
+        .expect("Failed to read configuration.");
+    let connection = PgConnection::connect(&config.database_settings.connection_string())
+        .await
+        .expect("Failed to connect to the database.");
 
     let client = reqwest::Client::new();
 

@@ -1,8 +1,12 @@
+mod config;
 use anyhow::Result;
 use email_newsletter::run;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    run("127.0.0.1:8080")?.await?;
+    let config = config::Settings::from_yaml().await?;
+    let address = format!("127.0.0.1:{}", config.app_port);
+
+    run(&address)?.await?;
     Ok(())
 }

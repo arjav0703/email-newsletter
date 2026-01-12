@@ -7,12 +7,16 @@ mod routes {
     pub mod subscribe;
 }
 use routes::{status::status, subscribe::subscribe};
+use sqlx::PgConnection;
 
-pub fn run(address: &str) -> Result<Server> {
+pub fn run(address: &str, connection: PgConnection) -> Result<Server> {
     println!("Starting server at http://{}", address);
 
-    let server = HttpServer::new(|| {
+    let connection = web::Data::new(connection);
+
+    let server = HttpServer::new(move || {
         App::new()
+            .app_data(connection.clone())
             .route("/", web::get().to(greet))
             // .route("/{name}", web::get().to(greet))
             .route("/status", web::get().to(status))

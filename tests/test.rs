@@ -12,8 +12,16 @@ async fn test_health_status() {
 async fn spawn_app() -> String {
     let port = rand::random_range(2000..9000);
     let address = format!("127.0.0.1:{}", port);
+    let config = Settings::from_yaml()
+        .await
+        .expect("Failed to read configuration.");
+    let connection = config
+        .database_settings
+        .connect()
+        .await
+        .expect("Failed to connect to DB.");
 
-    let server = email_newsletter::run(&address).expect("Failed to bind address");
+    let server = email_newsletter::run(&address, connection).expect("Failed to bind address");
     let _ = tokio::spawn(server);
 
     address
@@ -34,9 +42,11 @@ async fn test_subscribe() {
     let config = Settings::from_yaml()
         .await
         .expect("Failed to read configuration.");
-    let connection = PgConnection::connect(&config.database_settings.connection_string())
+    let connection = config
+        .database_settings
+        .connect()
         .await
-        .expect("Failed to connect to the database.");
+        .expect("Failed to connect to DB.");
 
     let client = reqwest::Client::new();
 

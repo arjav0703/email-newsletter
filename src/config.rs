@@ -1,3 +1,5 @@
+use sqlx::Connection;
+
 #[derive(serde::Deserialize, Debug)]
 pub struct Settings {
     pub database_settings: DatabaseSettings,
@@ -14,11 +16,17 @@ pub struct DatabaseSettings {
 }
 
 impl DatabaseSettings {
-    pub fn connection_string(&self) -> String {
+    fn connection_string(&self) -> String {
         format!(
             "postgres://{}:{}@{}:{}/{}",
             self.username, self.password, self.host, self.port, self.database_name
         )
+    }
+
+    pub async fn connect(&self) -> Result<sqlx::PgConnection, sqlx::Error> {
+        let connection_string = self.connection_string();
+        let c = sqlx::PgConnection::connect(&connection_string).await?;
+        Ok(c)
     }
 }
 

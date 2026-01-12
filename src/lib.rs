@@ -7,9 +7,9 @@ mod routes {
     pub mod subscribe;
 }
 use routes::{status::status, subscribe::subscribe};
-use sqlx::PgConnection;
+use sqlx::PgPool;
 
-pub fn run(address: &str, connection: PgConnection) -> Result<Server> {
+pub fn run(address: &str, connection: PgPool) -> Result<Server> {
     println!("Starting server at http://{}", address);
 
     let connection = web::Data::new(connection);

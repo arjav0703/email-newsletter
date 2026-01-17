@@ -14,17 +14,25 @@ pub struct DatabaseSettings {
 }
 
 impl DatabaseSettings {
-    fn connection_string(&self) -> String {
+    pub fn connection_string(&self) -> String {
         format!(
             "postgres://{}:{}@{}:{}/{}",
             self.username, self.password, self.host, self.port, self.database_name
         )
     }
 
+    /// Uses the connection string specified in struct to connect PgPool
     pub async fn connect(&self) -> Result<sqlx::PgPool, sqlx::Error> {
         let connection_string = self.connection_string();
         let c = sqlx::PgPool::connect(&connection_string).await?;
         Ok(c)
+    }
+
+    pub async fn connection_string_without_db(&self) -> String {
+        format!(
+            "postgres://{}:{}@{}:{}",
+            self.username, self.password, self.host, self.port
+        )
     }
 }
 

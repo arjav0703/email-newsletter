@@ -1,4 +1,4 @@
-use actix_web::{App, HttpRequest, HttpResponse, HttpServer, Responder, dev::Server, web};
+use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, web};
 use anyhow::Result;
 pub mod config;
 

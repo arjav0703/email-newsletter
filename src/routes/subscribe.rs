@@ -15,7 +15,7 @@ impl FormData {
     }
 
     fn validate_email(&self) -> bool {
-        self.email.contains('@')
+        self.email.contains('@') && self.email.contains('.')
     }
 }
 

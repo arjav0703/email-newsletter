@@ -1,8 +1,7 @@
 use actix_web::{HttpResponse, web};
 use chrono::Utc;
-use log::{error, info, warn};
-
 use sqlx::PgPool;
+use tracing::{error, info, instrument::Instrument};
 use uuid::Uuid;
 
 #[derive(serde::Deserialize, Debug)]
@@ -23,6 +22,13 @@ impl FormData {
 
 pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>) -> HttpResponse {
     let request_id = Uuid::new_v4();
+    let request_span = tracing::info_span!(
+        "Adding a new subscriber.",
+        %request_id,
+        subscriber_email = %form.email,
+        subscriber_name = %form.name
+    );
+    let _enter = request_span.enter();
 
     info!(
         "id -> {} Received subscription request: {} <{}>",
@@ -30,10 +36,11 @@ pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>)
     );
 
     if !form.validate() {
-        warn!("id -> {} Invalid form data: {:?}", request_id, form);
+        error!("id -> {} Invalid form data: {:?}", request_id, form);
         return HttpResponse::BadRequest().finish();
     }
 
+    let query_span = tracing::info_span!("Saving new subscriber in the database.");
     let res = sqlx::query!(
         r#"
         Insert into subscriptions (id, email, name, subscribed_at)
@@ -45,6 +52,7 @@ pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>)
         Utc::now()
     )
     .execute(connection.get_ref())
+    .instrument(query_span)
     .await;
 
     match res {

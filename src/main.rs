@@ -2,7 +2,7 @@ mod config;
 use anyhow::Result;
 use email_newsletter::run;
 use env_logger::Env;
-use log::info;
+use log::{error, info};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
                 break;
             }
             Err(e) => {
-                info!(
+                error!(
                     "Failed to connect to the database: {}. Retrying in 5 seconds...",
                     e
                 );

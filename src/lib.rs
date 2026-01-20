@@ -1,5 +1,6 @@
-use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, web};
+use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, middleware::Logger, web};
 use anyhow::Result;
+use log::info;
 pub mod config;
 
 mod routes {
@@ -10,13 +11,14 @@ use routes::{status::status, subscribe::subscribe};
 use sqlx::PgPool;
 
 pub fn run(address: &str, connection: PgPool) -> Result<Server> {
-    println!("Starting server at http://{}", address);
+    info!("Starting server at http://{}", address);
 
     let connection = web::Data::new(connection);
 
     let server = HttpServer::new(move || {
         App::new()
             .app_data(connection.clone())
+            .wrap(Logger::default())
             .route("/", web::get().to(greet))
             // .route("/{name}", web::get().to(greet))
             .route("/status", web::get().to(status))

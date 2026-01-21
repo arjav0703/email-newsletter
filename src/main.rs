@@ -4,7 +4,7 @@ use email_newsletter::{
     config,
     telemetry::{get_subscriber, init_subscriber},
 };
-use log::{error, info};
+use tracing::{error, info};
 
 #[tokio::main]
 async fn main() -> Result<()> {

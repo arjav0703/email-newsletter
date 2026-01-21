@@ -1,4 +1,4 @@
-use log::{error, info};
+use tracing::{error, info};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Settings {

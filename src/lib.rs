@@ -1,6 +1,6 @@
 use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, middleware::Logger, web};
 use anyhow::Result;
-use log::info;
+use tracing::info;
 pub mod config;
 pub mod telemetry;
 

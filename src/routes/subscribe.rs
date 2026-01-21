@@ -20,28 +20,35 @@ impl FormData {
     }
 }
 
-pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>) -> HttpResponse {
-    let request_id = Uuid::new_v4();
-    let request_span = tracing::info_span!(
-        "Adding a new subscriber.",
-        %request_id,
+#[tracing::instrument(
+    name = "Adding a new subscriber",
+    skip(form, connection),
+    fields(
         subscriber_email = %form.email,
         subscriber_name = %form.name
-    );
-    let _enter = request_span.enter();
+    )
+)]
+pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>) -> HttpResponse {
+    match insert_user(form, connection).await {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
 
-    info!(
-        "id -> {} Received subscription request: {} <{}>",
-        request_id, form.name, form.email
-    );
-
+#[tracing::instrument(
+    name = "Saving new subscriber details in the database",
+    skip(form, connection)
+)]
+async fn insert_user(
+    form: web::Form<FormData>,
+    connection: web::Data<PgPool>,
+) -> Result<(), sqlx::Error> {
     if !form.validate() {
-        error!("id -> {} Invalid form data: {:?}", request_id, form);
-        return HttpResponse::BadRequest().finish();
+        error!("Invalid form data: {:?}", form);
+        return Err(sqlx::Error::Protocol("Invalid form data".into()));
     }
 
-    let query_span = tracing::info_span!("Saving new subscriber in the database.");
-    let res = sqlx::query!(
+    sqlx::query!(
         r#"
         Insert into subscriptions (id, email, name, subscribed_at)
         values ($1, $2, $3, $4)
@@ -51,18 +58,10 @@ pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>)
         form.name,
         Utc::now()
     )
-    .execute(connection.get_ref())
-    .instrument(query_span)
-    .await;
+    .execute(connection.as_ref())
+    .instrument(tracing::info_span!("Inserting new subscriber"))
+    .await?;
 
-    match res {
-        Ok(_) => {
-            info!("id -> {} Added user successfully", request_id);
-            HttpResponse::Ok().finish()
-        }
-        Err(e) => {
-            error!("id -> {} Failed to add user: {}", request_id, e);
-            HttpResponse::InternalServerError().finish()
-        }
-    }
+    info!("New subscriber details saved successfully: {:?}", form);
+    Ok(())
 }

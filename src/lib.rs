@@ -1,6 +1,7 @@
-use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, middleware::Logger, web};
+use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, web};
 use anyhow::Result;
 use tracing::info;
+use tracing_actix_web::TracingLogger;
 pub mod config;
 pub mod telemetry;
 
@@ -19,7 +20,7 @@ pub fn run(address: &str, connection: PgPool) -> Result<Server> {
     let server = HttpServer::new(move || {
         App::new()
             .app_data(connection.clone())
-            .wrap(Logger::default())
+            .wrap(TracingLogger::default())
             .route("/", web::get().to(greet))
             // .route("/{name}", web::get().to(greet))
             .route("/status", web::get().to(status))

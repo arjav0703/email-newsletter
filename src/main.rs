@@ -1,35 +1,26 @@
-mod config;
 use anyhow::Result;
 use email_newsletter::run;
-use env_logger::Env;
+use email_newsletter::{
+    config,
+    telemetry::{get_subscriber, init_subscriber},
+};
 use log::{error, info};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    // Tracing subscriber
+    let subscriber = get_subscriber("email_newsletter".into(), "info".into());
+    init_subscriber(subscriber);
+    info!("Starting up...");
 
+    // (from config.yaml)
     let config = config::Settings::from_yaml().await?;
     let address = format!("127.0.0.1:{}", config.app_port);
 
-    let connection;
-    loop {
-        info!("Attempting to connect to the database...");
-        let c = config.database_settings.connect().await;
-        match c {
-            Ok(conn) => {
-                connection = conn;
-                info!("Successfully connected to the database");
-                break;
-            }
-            Err(e) => {
-                error!(
-                    "Failed to connect to the database: {}. Retrying in 5 seconds...",
-                    e
-                );
-                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
-            }
-        }
-    }
+    let connection = config.database_settings.try_connect().await.map_err(|e| {
+        error!("Failed to connect to the database: {}", e);
+        e
+    })?;
 
     run(&address, connection)?.await?;
     Ok(())

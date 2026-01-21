@@ -1,3 +1,5 @@
+use log::{error, info};
+
 #[derive(serde::Deserialize, Debug)]
 pub struct Settings {
     pub database_settings: DatabaseSettings,
@@ -28,6 +30,28 @@ impl DatabaseSettings {
         Ok(c)
     }
 
+    pub async fn try_connect(&self) -> Result<sqlx::PgPool, sqlx::Error> {
+        let connection;
+        loop {
+            info!("Attempting to connect to the database...");
+            let c = self.connect().await;
+            match c {
+                Ok(conn) => {
+                    connection = conn;
+                    info!("Successfully connected to the database");
+                    break;
+                }
+                Err(e) => {
+                    error!(
+                        "Failed to connect to the database: {}. Retrying in 5 seconds...",
+                        e
+                    );
+                    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                }
+            }
+        }
+        Ok(connection)
+    }
     pub async fn connection_string_without_db(&self) -> String {
         format!(
             "postgres://{}:{}@{}:{}",

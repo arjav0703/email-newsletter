@@ -2,6 +2,7 @@ use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, middleware
 use anyhow::Result;
 use log::info;
 pub mod config;
+pub mod telemetry;
 
 mod routes {
     pub mod status;

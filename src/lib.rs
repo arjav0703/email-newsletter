@@ -3,6 +3,7 @@ use anyhow::Result;
 use tracing::info;
 use tracing_actix_web::TracingLogger;
 pub mod config;
+pub mod domain;
 pub mod telemetry;
 
 mod routes {

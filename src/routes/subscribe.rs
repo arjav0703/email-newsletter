@@ -1,3 +1,4 @@
+use crate::domain::Subscriber;
 use actix_web::{HttpResponse, web};
 use chrono::Utc;
 use sqlx::PgPool;
@@ -10,16 +11,6 @@ pub struct FormData {
     email: String,
 }
 
-impl FormData {
-    pub fn validate(&self) -> bool {
-        !self.name.is_empty() && self.validate_email()
-    }
-
-    fn validate_email(&self) -> bool {
-        self.email.contains('@') && self.email.contains('.')
-    }
-}
-
 #[tracing::instrument(
     name = "Adding a new subscriber",
     skip(form, connection),
@@ -29,7 +20,15 @@ impl FormData {
     )
 )]
 pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>) -> HttpResponse {
-    match insert_user(form, connection).await {
+    let subscriber = match Subscriber::create(form.name.clone(), form.email.clone()) {
+        Ok(subscriber) => subscriber,
+        Err(e) => {
+            error!("Invalid Subscriber Details: {}", e);
+            return HttpResponse::BadRequest().finish();
+        }
+    };
+
+    match insert_subscriber(&subscriber, connection).await {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
     }
@@ -37,31 +36,29 @@ pub async fn subscribe(form: web::Form<FormData>, connection: web::Data<PgPool>)
 
 #[tracing::instrument(
     name = "Saving new subscriber details in the database",
-    skip(form, connection)
+    skip(subscriber, connection)
 )]
-async fn insert_user(
-    form: web::Form<FormData>,
+async fn insert_subscriber(
+    subscriber: &Subscriber,
     connection: web::Data<PgPool>,
 ) -> Result<(), sqlx::Error> {
-    if !form.validate() {
-        error!("Invalid form data: {:?}", form);
-        return Err(sqlx::Error::Protocol("Invalid form data".into()));
-    }
-
     sqlx::query!(
         r#"
         Insert into subscriptions (id, email, name, subscribed_at)
         values ($1, $2, $3, $4)
         "#,
         Uuid::new_v4(),
-        form.email,
-        form.name,
+        subscriber.email(),
+        subscriber.name(),
         Utc::now()
     )
     .execute(connection.as_ref())
     .instrument(tracing::info_span!("Inserting new subscriber"))
     .await?;
 
-    info!("New subscriber details saved successfully: {:?}", form);
+    info!(
+        "New subscriber details saved successfully: {:?}",
+        subscriber
+    );
     Ok(())
 }

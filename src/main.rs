@@ -15,7 +15,7 @@ async fn main() -> Result<()> {
 
     // (from config.yaml)
     let config = config::Settings::from_yaml().await?;
-    let address = format!("127.0.0.1:{}", config.app_port);
+    let address = config.get_address();
 
     let connection = config.database_settings.try_connect().await.map_err(|e| {
         error!("Failed to connect to the database: {}", e);

@@ -3,7 +3,13 @@ use tracing::{error, info};
 #[derive(serde::Deserialize, Debug)]
 pub struct Settings {
     pub database_settings: DatabaseSettings,
-    pub app_port: u16,
+    pub application_settings: ApplicationSettings,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct ApplicationSettings {
+    pub port: u16,
+    pub host: String,
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -31,8 +37,14 @@ impl DatabaseSettings {
     }
 
     pub async fn try_connect(&self) -> Result<sqlx::PgPool, sqlx::Error> {
+        let mut count = 0;
         let connection;
         loop {
+            if count >= 5 {
+                return Err(sqlx::Error::Protocol(
+                    "Exceeded maximum connection attempts".into(),
+                ));
+            }
             info!("Attempting to connect to the database...");
             let c = self.connect().await;
             match c {
@@ -46,6 +58,7 @@ impl DatabaseSettings {
                         "Failed to connect to the database: {}. Retrying in 5 seconds...",
                         e
                     );
+                    count += 1;
                     tokio::time::sleep(std::time::Duration::from_secs(5)).await;
                 }
             }
@@ -66,5 +79,12 @@ impl Settings {
             .add_source(config::File::new("config.yaml", config::FileFormat::Yaml))
             .build()?;
         settings.try_deserialize::<Settings>()
+    }
+
+    pub fn get_address(&self) -> String {
+        format!(
+            "{}:{}",
+            self.application_settings.host, self.application_settings.port
+        )
     }
 }

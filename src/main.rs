@@ -23,15 +23,6 @@ async fn main() -> Result<()> {
         config.email_settings.resend_api_key.clone(),
     );
 
-    let test_recipient = SubscriberEmail::parse("arjavjain0703@gmail.com".to_string()).unwrap();
-    email_config
-        .send_test_email(test_recipient)
-        .await
-        .map_err(|e| {
-            error!("Failed to send test email: {}", e);
-            e
-        })?;
-
     let connection = config.database_settings.try_connect().await.map_err(|e| {
         error!("Failed to connect to the database: {}", e);
         e

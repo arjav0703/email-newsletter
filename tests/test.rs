@@ -1,3 +1,4 @@
+use email_newsletter::email_client::EmailClient;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 
 #[tokio::test]
@@ -25,7 +26,13 @@ async fn spawn_app() -> TestApp {
     config.database_settings.database_name = format!("test_db_{}", uuid::Uuid::new_v4());
     let pool = configure_database(&config).await;
 
-    let server = email_newsletter::run(&address, pool.clone()).expect("Failed to bind address");
+    let email_config = EmailClient::new(
+        config.email_settings.sender_email.clone(),
+        config.email_settings.resend_api_key.clone(),
+    );
+
+    let server = email_newsletter::run(&address, pool.clone(), email_config)
+        .expect("Failed to bind address");
     let _ = tokio::spawn(server);
 
     TestApp {

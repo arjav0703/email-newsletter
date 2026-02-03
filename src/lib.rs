@@ -1,10 +1,16 @@
-use actix_web::{App, HttpRequest, HttpServer, Responder, dev::Server, web};
+use actix_web::{
+    App, HttpRequest, HttpServer, Responder,
+    dev::Server,
+    web::{self, Data},
+};
 use anyhow::Result;
 use tracing::info;
 use tracing_actix_web::TracingLogger;
 pub mod config;
 pub mod domain;
+pub mod email_client;
 pub mod telemetry;
+use email_client::EmailClient;
 
 mod routes {
     pub mod status;
@@ -13,14 +19,16 @@ mod routes {
 use routes::{status::status, subscribe::subscribe};
 use sqlx::PgPool;
 
-pub fn run(address: &str, connection: PgPool) -> Result<Server> {
+pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Result<Server> {
     info!("Starting server at http://{}", address);
 
-    let connection = web::Data::new(connection);
+    let connection = Data::new(connection);
+    let email_client = Data::new(email_client);
 
     let server = HttpServer::new(move || {
         App::new()
             .app_data(connection.clone())
+            .app_data(email_client.clone())
             .wrap(TracingLogger::default())
             .route("/", web::get().to(greet))
             // .route("/{name}", web::get().to(greet))

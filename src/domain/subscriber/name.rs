@@ -1,4 +1,6 @@
-#[derive(Debug)]
+// #[derive(Debug)]
+
+#[derive(serde::Deserialize, Debug, Clone)]
 pub struct SubscriberName(String);
 
 impl SubscriberName {

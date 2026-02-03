@@ -23,6 +23,8 @@ tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.22", features = ["registry", "env-filter"] }
 uuid = {version = "1.19.0", features = ["v4"]}
 validator = "0.16"
+reqwest = "0.12.28"
+resend-rs = "0.21.0"
 
 [dependencies.sqlx]
 version = "0.8.6"
@@ -36,4 +38,3 @@ features = [
 ]
 
 [dev-dependencies]
-reqwest = "0.12.28"

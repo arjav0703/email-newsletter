@@ -1,9 +1,17 @@
+use crate::domain::SubscriberEmail;
 use tracing::{error, info};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Settings {
     pub database_settings: DatabaseSettings,
     pub application_settings: ApplicationSettings,
+    pub email_settings: EmailClientSettings,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct EmailClientSettings {
+    pub sender_email: SubscriberEmail,
+    pub resend_api_key: String,
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -19,6 +27,12 @@ pub struct DatabaseSettings {
     pub port: u16,
     pub host: String,
     pub database_name: String,
+}
+
+impl EmailClientSettings {
+    pub fn sender(&self) -> Result<SubscriberEmail, String> {
+        SubscriberEmail::parse(self.sender_email.as_ref().to_string())
+    }
 }
 
 impl DatabaseSettings {

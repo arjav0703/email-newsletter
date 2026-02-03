@@ -3,7 +3,7 @@ mod name;
 pub use email::SubscriberEmail;
 pub use name::SubscriberName;
 
-#[derive(Debug)]
+#[derive(serde::Deserialize, Debug)]
 pub struct Subscriber {
     pub name: SubscriberName,
     pub email: SubscriberEmail,

@@ -5,14 +5,17 @@ use resend_rs::Resend;
 use resend_rs::types::CreateEmailBaseOptions;
 use tracing::info;
 
+#[derive(Debug)]
 pub struct EmailClient {
+    base_url: String,
     sender: SubscriberEmail,
     resend_api_key: String,
 }
 
 impl EmailClient {
-    pub fn new(sender: SubscriberEmail, resend_api_key: String) -> Self {
+    pub fn new(base_url: String, sender: SubscriberEmail, resend_api_key: String) -> Self {
         Self {
+            base_url,
             sender,
             resend_api_key,
         }
@@ -42,5 +45,9 @@ impl EmailClient {
         let html_content = "<h1>This is a test email sent from EmailClient</h1>";
 
         self.send_email(recipient, subject, html_content).await
+    }
+
+    pub fn base_url(&self) -> &str {
+        &self.base_url
     }
 }

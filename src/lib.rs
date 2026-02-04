@@ -13,6 +13,7 @@ pub mod telemetry;
 use email_client::EmailClient;
 
 mod routes {
+    pub mod confirm_subscription;
     pub mod status;
     pub mod subscribe;
 }

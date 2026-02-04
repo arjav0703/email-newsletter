@@ -18,6 +18,7 @@ async fn main() -> Result<()> {
     let config = config::Settings::from_yaml().await?;
     let address = config.get_address();
     let email_config = EmailClient::new(
+        config.email_settings.base_url.clone(),
         config.email_settings.sender_email.clone(),
         config.email_settings.resend_api_key.clone(),
     );

@@ -10,6 +10,7 @@ pub struct Settings {
 
 #[derive(serde::Deserialize, Debug)]
 pub struct EmailClientSettings {
+    pub base_url: String,
     pub sender_email: SubscriberEmail,
     pub resend_api_key: String,
 }

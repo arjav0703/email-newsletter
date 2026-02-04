@@ -44,8 +44,8 @@ async fn insert_subscriber(
 ) -> Result<(), sqlx::Error> {
     sqlx::query!(
         r#"
-        Insert into subscriptions (id, email, name, subscribed_at)
-        values ($1, $2, $3, $4)
+        Insert into subscriptions (id, email, name, subscribed_at, status)
+        values ($1, $2, $3, $4, 'confirmed')
         "#,
         Uuid::new_v4(),
         subscriber.email(),

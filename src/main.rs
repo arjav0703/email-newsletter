@@ -1,5 +1,4 @@
 use anyhow::Result;
-use email_newsletter::domain::SubscriberEmail;
 use email_newsletter::email_client::EmailClient;
 use email_newsletter::run;
 use email_newsletter::{

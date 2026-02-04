@@ -3,6 +3,7 @@ use anyhow::Result;
 
 use resend_rs::Resend;
 use resend_rs::types::CreateEmailBaseOptions;
+use tracing::info;
 
 pub struct EmailClient {
     sender: SubscriberEmail,
@@ -31,7 +32,7 @@ impl EmailClient {
         let email = CreateEmailBaseOptions::new(from, to, subject).with_html(html_content);
 
         let _email = resend.emails.send(email).await?;
-        println!("{:?}", _email);
+        info!("{:?}", _email);
 
         Ok(())
     }

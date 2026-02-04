@@ -2,11 +2,13 @@ mod email;
 mod name;
 pub use email::SubscriberEmail;
 pub use name::SubscriberName;
+use uuid::Uuid;
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(Debug)]
 pub struct Subscriber {
     pub name: SubscriberName,
     pub email: SubscriberEmail,
+    pub id: Uuid,
 }
 
 impl Subscriber {
@@ -17,6 +19,7 @@ impl Subscriber {
         Ok(Subscriber {
             name: subscriber_name,
             email: subscriber_email,
+            id: Uuid::new_v4(),
         })
     }
 
@@ -26,5 +29,9 @@ impl Subscriber {
 
     pub fn name(&self) -> &str {
         self.name.as_ref()
+    }
+
+    pub fn id(&self) -> &Uuid {
+        self.id.as_ref()
     }
 }

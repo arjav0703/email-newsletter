@@ -17,7 +17,7 @@ mod routes {
     pub mod status;
     pub mod subscribe;
 }
-use routes::{status::status, subscribe::subscribe};
+use routes::{confirm_subscription::confirm_subsciption, status::status, subscribe::subscribe};
 use sqlx::PgPool;
 
 pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Result<Server> {
@@ -32,9 +32,9 @@ pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Resu
             .app_data(email_client.clone())
             .wrap(TracingLogger::default())
             .route("/", web::get().to(greet))
-            // .route("/{name}", web::get().to(greet))
             .route("/status", web::get().to(status))
             .route("/subscribe", web::post().to(subscribe))
+            .route("/subscriptions/confirm", web::get().to(confirm_subsciption))
     })
     .bind(address)?
     .run();

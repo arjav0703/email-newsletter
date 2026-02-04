@@ -25,7 +25,7 @@ pub async fn subscribe(
     connection: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
 ) -> HttpResponse {
-    let subscription_token = Uuid::new_v4().to_string();
+    let subscription_token = generate_subscription_token();
 
     let subscriber = match Subscriber::create(form.name.clone(), form.email.clone()) {
         Ok(subscriber) => subscriber,
@@ -39,6 +39,17 @@ pub async fn subscribe(
         .await
         .is_err()
     {
+        return HttpResponse::InternalServerError().finish();
+    }
+
+    if store_token(connection.clone(), *subscriber.id(), &subscription_token)
+        .await
+        .is_err()
+    {
+        error!(
+            "Failed to store subscription token for subscriber: {:?}",
+            subscriber
+        );
         return HttpResponse::InternalServerError().finish();
     }
 
@@ -61,7 +72,7 @@ async fn insert_subscriber(
         Insert into subscriptions (id, email, name, subscribed_at, status)
         values ($1, $2, $3, $4, 'pending_confirmation')
         "#,
-        Uuid::new_v4(),
+        subscriber.id(),
         subscriber.email(),
         subscriber.name(),
         Utc::now()
@@ -111,4 +122,37 @@ async fn send_confirmation_email(
         subscriber.email()
     );
     Ok(())
+}
+
+#[tracing::instrument(
+    name = "Store subscription token",
+    skip(subscription_token, connection)
+)]
+pub async fn store_token(
+    connection: web::Data<PgPool>,
+    subscriber_id: Uuid,
+    subscription_token: &str,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"INSERT INTO subscription_tokens (subscription_token, subscriber_id)
+        VALUES ($1, $2)"#,
+        subscription_token,
+        subscriber_id
+    )
+    .execute(connection.as_ref())
+    .await
+    .map_err(|e| {
+        tracing::error!("Query failed: {:?}", e);
+        e
+    })?;
+    Ok(())
+}
+
+use rand::{Rng, distr::Alphanumeric, rng};
+pub fn generate_subscription_token() -> String {
+    let mut rng = rng();
+    std::iter::repeat_with(|| rng.sample(Alphanumeric))
+        .map(char::from)
+        .take(25)
+        .collect()
 }

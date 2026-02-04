@@ -27,6 +27,7 @@ async fn spawn_app() -> TestApp {
     let pool = configure_database(&config).await;
 
     let email_config = EmailClient::new(
+        config.email_settings.base_url.clone(),
         config.email_settings.sender_email.clone(),
         config.email_settings.resend_api_key.clone(),
     );
@@ -117,4 +118,15 @@ pub async fn configure_database(config: &Settings) -> PgPool {
         .expect("Failed to migrate the database");
 
     connection_pool
+}
+
+#[tokio::test]
+async fn confirmations_without_token_are_rejected_with_a_400() {
+    let app = spawn_app().await;
+
+    let response = reqwest::get(&format!("{}/subscriptions/confirm", app.address))
+        .await
+        .unwrap();
+
+    assert_eq!(response.status().as_u16(), 400);
 }

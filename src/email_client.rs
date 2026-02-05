@@ -1,4 +1,4 @@
-use crate::domain::SubscriberEmail;
+use crate::domain::{Subscriber, SubscriberEmail};
 use anyhow::Result;
 
 use resend_rs::Resend;
@@ -49,5 +49,40 @@ impl EmailClient {
 
     pub fn base_url(&self) -> &str {
         &self.base_url
+    }
+
+    #[tracing::instrument(
+        name = "Sending a confirmation email to new subscriber",
+        skip(subscriber, self, subscription_token)
+    )]
+    pub async fn send_confirmation_email(
+        &self,
+        subscriber: &Subscriber,
+        subscription_token: &str,
+    ) -> Result<()> {
+        let confirmation_link = format!(
+            "http://{}/subscriptions/confirm?subscription_token={}",
+            self.base_url(),
+            subscription_token
+        );
+
+        let html_content = format!(
+            "Welcome to our newsletter!<br />\
+        Click <a href=\"{}\">here</a> to confirm your subscription.",
+            confirmation_link
+        );
+
+        self.send_email(
+            subscriber.email.to_owned(),
+            "Please confirm your subscription",
+            &html_content,
+        )
+        .await?;
+
+        info!(
+            "Confirmation email sent to subscriber: {:?}",
+            subscriber.email()
+        );
+        Ok(())
     }
 }

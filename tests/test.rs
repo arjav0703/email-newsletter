@@ -48,9 +48,9 @@ async fn test_subscribe() {
     let app = spawn_app().await;
     let address = &app.address;
     let test_data = vec![
-        ("name=le%20guin&email=ursula_le_guin%40gmail.com", 200),
-        ("name=le%20guin", 400),
-        ("email=ursula_le_guin%40gmail.com", 400),
+        ("name=arjav&email=arjavjain0703%40gmail.com", 200),
+        ("name=arjav", 400),
+        ("email=arjavjain0703%40gmail.com", 400),
         ("", 400),
     ];
 
@@ -82,8 +82,8 @@ async fn test_subscribe() {
         .await
         .expect("Failed to fetch saved subscription.");
 
-    assert_eq!(saved.email, "ursula_le_guin@gmail.com");
-    assert_eq!(saved.name, "le guin");
+    assert_eq!(saved.email, "arjavjain0703@gmail.com");
+    assert_eq!(saved.name, "arjav");
 }
 
 pub async fn configure_database(config: &Settings) -> PgPool {
@@ -124,7 +124,10 @@ pub async fn configure_database(config: &Settings) -> PgPool {
 async fn confirmations_without_token_are_rejected_with_a_400() {
     let app = spawn_app().await;
 
-    let response = reqwest::get(&format!("{}/subscriptions/confirm", app.address))
+    let url = format!("http://{}/subscriptions/confirm", app.address);
+    dbg!(&url);
+
+    let response = reqwest::get(&format!("http://{}/subscriptions/confirm", app.address))
         .await
         .unwrap();
 

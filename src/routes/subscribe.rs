@@ -61,7 +61,8 @@ pub async fn subscribe(
         return HttpResponse::InternalServerError().finish();
     }
 
-    if send_confirmation_email(&subscriber, &email_client, &subscription_token)
+    if email_client
+        .send_confirmation_email(&subscriber, &subscription_token)
         .await
         .is_err()
     {
@@ -109,42 +110,6 @@ async fn insert_subscriber(
     info!(
         "New subscriber details saved successfully: {:?}",
         subscriber
-    );
-    Ok(())
-}
-
-#[tracing::instrument(
-    name = "Sending a confirmation email to new subscriber",
-    skip(subscriber, email_client, subscription_token)
-)]
-async fn send_confirmation_email(
-    subscriber: &Subscriber,
-    email_client: &EmailClient,
-    subscription_token: &str,
-) -> Result<()> {
-    let confirmation_link = format!(
-        "http://{}/subscriptions/confirm?subscription_token={}",
-        email_client.base_url(),
-        subscription_token
-    );
-
-    let html_content = format!(
-        "Welcome to our newsletter!<br />\
-        Click <a href=\"{}\">here</a> to confirm your subscription.",
-        confirmation_link
-    );
-
-    email_client
-        .send_email(
-            subscriber.email.to_owned(),
-            "Please confirm your subscription",
-            &html_content,
-        )
-        .await?;
-
-    info!(
-        "Confirmation email sent to subscriber: {:?}",
-        subscriber.email()
     );
     Ok(())
 }

@@ -25,13 +25,16 @@ impl EmailClient {
         recipient: SubscriberEmail,
         subject: &str,
         html_content: &str,
+        text_content: Option<&str>,
     ) -> Result<(), resend_rs::Error> {
         let resend = Resend::new(self.resend_api_key.expose_secret());
 
         let from = self.sender.as_ref();
         let to = [recipient.as_ref()];
 
-        let email = CreateEmailBaseOptions::new(from, to, subject).with_html(html_content);
+        let email = CreateEmailBaseOptions::new(from, to, subject)
+            .with_html(html_content)
+            .with_text(text_content.unwrap_or_default());
 
         let _email = resend.emails.send(email).await?;
         info!("{:?}", _email);
@@ -46,7 +49,8 @@ impl EmailClient {
         let subject = "Test Email from EmailClient";
         let html_content = "<h1>This is a test email sent from EmailClient</h1>";
 
-        self.send_email(recipient, subject, html_content).await
+        self.send_email(recipient, subject, html_content, None)
+            .await
     }
 
     pub fn base_url(&self) -> &str {
@@ -78,6 +82,7 @@ impl EmailClient {
             subscriber.email.to_owned(),
             "Please confirm your subscription",
             &html_content,
+            None,
         )
         .await?;
 

@@ -2,7 +2,7 @@ use crate::email_client::EmailClient;
 use actix_web::{HttpResponse, web};
 use anyhow::Result;
 use sqlx::PgPool;
-use tracing::{error, info};
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(serde::Deserialize, Debug)]

@@ -2,8 +2,8 @@ use crate::{domain::Subscriber, email_client::EmailClient};
 use actix_web::{HttpResponse, web};
 use anyhow::Result;
 use chrono::Utc;
-use sqlx::PgPool;
-use tracing::{error, info, instrument::Instrument};
+use sqlx::{Executor, PgPool, Transaction};
+use tracing::{error, info};
 use uuid::Uuid;
 
 #[derive(serde::Deserialize, Debug)]
@@ -35,14 +35,22 @@ pub async fn subscribe(
         }
     };
 
-    if send_confirmation_email(&subscriber, &email_client, &subscription_token)
+    let mut transaction = match connection.begin().await {
+        Ok(tx) => tx,
+        Err(e) => {
+            error!("Failed to begin transaction: {}", e);
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+
+    if insert_subscriber(&subscriber, &mut transaction)
         .await
         .is_err()
     {
         return HttpResponse::InternalServerError().finish();
-    }
+    };
 
-    if store_token(connection.clone(), *subscriber.id(), &subscription_token)
+    if store_token(&mut transaction, *subscriber.id(), &subscription_token)
         .await
         .is_err()
     {
@@ -53,21 +61,39 @@ pub async fn subscribe(
         return HttpResponse::InternalServerError().finish();
     }
 
-    match insert_subscriber(&subscriber, connection).await {
-        Ok(_) => HttpResponse::Ok().finish(),
-        Err(_) => HttpResponse::InternalServerError().finish(),
+    if send_confirmation_email(&subscriber, &email_client, &subscription_token)
+        .await
+        .is_err()
+    {
+        if transaction.rollback().await.is_err() {
+            error!(
+                "Failed to rollback transaction for subscriber: {:?}",
+                subscriber
+            );
+        }
+        return HttpResponse::InternalServerError().finish();
     }
+
+    if transaction.commit().await.is_err() {
+        error!(
+            "Failed to commit transaction for subscriber: {:?}",
+            subscriber
+        );
+        return HttpResponse::InternalServerError().finish();
+    }
+
+    HttpResponse::Ok().finish()
 }
 
 #[tracing::instrument(
     name = "Saving new subscriber details in the database",
-    skip(subscriber, connection)
+    skip(subscriber, transaction)
 )]
 async fn insert_subscriber(
     subscriber: &Subscriber,
-    connection: web::Data<PgPool>,
+    transaction: &mut Transaction<'_, sqlx::Postgres>,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query!(
+    let query = sqlx::query!(
         r#"
         Insert into subscriptions (id, email, name, subscribed_at, status)
         values ($1, $2, $3, $4, 'pending_confirmation')
@@ -76,10 +102,9 @@ async fn insert_subscriber(
         subscriber.email(),
         subscriber.name(),
         Utc::now()
-    )
-    .execute(connection.as_ref())
-    .instrument(tracing::info_span!("Inserting new subscriber"))
-    .await?;
+    );
+
+    transaction.execute(query).await?;
 
     info!(
         "New subscriber details saved successfully: {:?}",
@@ -126,25 +151,20 @@ async fn send_confirmation_email(
 
 #[tracing::instrument(
     name = "Store subscription token",
-    skip(subscription_token, connection)
+    skip(subscription_token, transaction)
 )]
 pub async fn store_token(
-    connection: web::Data<PgPool>,
+    transaction: &mut Transaction<'_, sqlx::Postgres>,
     subscriber_id: Uuid,
     subscription_token: &str,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query!(
+    let query = sqlx::query!(
         r#"INSERT INTO subscription_tokens (subscription_token, subscriber_id)
         VALUES ($1, $2)"#,
         subscription_token,
         subscriber_id
-    )
-    .execute(connection.as_ref())
-    .await
-    .map_err(|e| {
-        tracing::error!("Query failed: {:?}", e);
-        e
-    })?;
+    );
+    transaction.execute(query).await?;
     Ok(())
 }
 

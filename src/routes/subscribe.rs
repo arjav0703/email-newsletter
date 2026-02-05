@@ -1,4 +1,7 @@
-use crate::{domain::Subscriber, email_client::EmailClient};
+use crate::{
+    domain::Subscriber,
+    email_client::{self, EmailClient},
+};
 use actix_web::{HttpResponse, web};
 use anyhow::Result;
 use chrono::Utc;
@@ -43,11 +46,19 @@ pub async fn subscribe(
         }
     };
 
-    if insert_subscriber(&subscriber, &mut transaction)
-        .await
-        .is_err()
-    {
-        return HttpResponse::InternalServerError().finish();
+    match insert_subscriber(&subscriber, &mut transaction).await {
+        Ok(_) => {}
+        Err(e) => {
+            if is_duplicate_email_error(&e) {
+                info!(
+                    "Duplicate email subscription attempt: {}",
+                    subscriber.email()
+                );
+                return HttpResponse::Conflict()
+                    .body("This email address is already registered. Please check your inbox for the confirmation email.");
+            }
+            return HttpResponse::InternalServerError().finish();
+        }
     };
 
     if store_token(&mut transaction, *subscriber.id(), &subscription_token)
@@ -140,4 +151,14 @@ pub fn generate_subscription_token() -> String {
         .map(char::from)
         .take(25)
         .collect()
+}
+
+fn is_duplicate_email_error(e: &sqlx::Error) -> bool {
+    if let sqlx::Error::Database(db_err) = e {
+        // PostgreSQL unique violation error code is 23505
+        if let Some(code) = db_err.code() {
+            return code == "23505";
+        }
+    }
+    false
 }

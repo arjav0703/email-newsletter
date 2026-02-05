@@ -1,5 +1,5 @@
 mod helpers;
-use helpers::spawn_app;
+use helpers::{send_subscribe_req, spawn_app};
 
 #[tokio::test]
 async fn test_subscribe() {
@@ -12,16 +12,10 @@ async fn test_subscribe() {
         ("", 400),
     ];
 
-    let client = reqwest::Client::new();
-
     for (body, expected_status) in test_data {
-        let response = client
-            .post(format!("http://{address}/subscribe"))
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body)
-            .send()
+        let response = send_subscribe_req(address, body.to_string())
             .await
-            .expect("Failed to execute request.");
+            .expect("Failed to execute subscribe request");
 
         assert_eq!(
             response.status().as_u16(),

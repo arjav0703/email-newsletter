@@ -65,3 +65,16 @@ pub async fn configure_database(config: &Settings) -> PgPool {
 
     connection_pool
 }
+
+use anyhow::Result;
+pub async fn send_subscribe_req(address: &str, body: String) -> Result<reqwest::Response> {
+    let client = reqwest::Client::new();
+    let response = client
+        .post(format!("http://{address}/subscribe"))
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .body(body)
+        .send()
+        .await
+        .expect("Failed to execute request.");
+    Ok(response)
+}

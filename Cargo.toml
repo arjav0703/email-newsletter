@@ -23,7 +23,7 @@ tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.22", features = ["registry", "env-filter"] }
 uuid = {version = "1.19.0", features = ["v4"]}
 validator = "0.16"
-reqwest = "0.12.28"
+reqwest = { version = "0.12.28", features = ["json"] }
 resend-rs = "0.21.0"
 secrecy = { version = "0.8", features = ["serde"] }
 
@@ -39,3 +39,5 @@ features = [
 ]
 
 [dev-dependencies]
+serde_json = "1.0.149"
+urlencoding = "2.1.3"

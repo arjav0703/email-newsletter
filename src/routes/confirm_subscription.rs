@@ -34,11 +34,13 @@ pub async fn confirm_subsciption(
 
     match id {
         Some(id) => {
-            if set_id_confirmed(&connection, id).await.is_err() {
+            if set_id_confirmed(&connection, id).await.is_err()
+                | delete_token(&connection, &token).await.is_err()
+            {
                 return HttpResponse::InternalServerError().finish();
-            } else {
-                return HttpResponse::Ok().finish();
             }
+
+            HttpResponse::Ok().finish()
         }
         None => {
             error!("No subscriber found for the provided token");
@@ -82,6 +84,23 @@ async fn set_id_confirmed(connection: &PgPool, id: Uuid) -> Result<()> {
     .await
     .map_err(|e| {
         tracing::error!("Failed to update subscription status: {:?}", e);
+        e
+    })?;
+
+    Ok(())
+}
+
+#[tracing::instrument(name = "Deleting subscription token", skip(connection, token))]
+async fn delete_token(connection: &PgPool, token: &str) -> Result<()> {
+    sqlx::query!(
+        "DELETE FROM subscription_tokens \
+      WHERE subscription_token = $1",
+        token,
+    )
+    .execute(connection)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to delete subscription token: {:?}", e);
         e
     })?;
 

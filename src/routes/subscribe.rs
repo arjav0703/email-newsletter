@@ -1,9 +1,6 @@
-use crate::{
-    domain::Subscriber,
-    email_client::EmailClient,
-};
+use crate::{domain::Subscriber, email_client::EmailClient};
 use actix_web::{HttpResponse, web};
-use anyhow::Result;
+// use anyhow::Result;
 use chrono::Utc;
 use sqlx::{Executor, PgPool, Transaction};
 use tracing::{error, info};
@@ -13,6 +10,11 @@ use uuid::Uuid;
 pub struct FormData {
     name: String,
     email: String,
+}
+
+pub enum SubscribeError {
+    DatabaseError(sqlx::Error),
+    EmailError,
 }
 
 #[tracing::instrument(
@@ -27,7 +29,7 @@ pub async fn subscribe(
     form: web::Form<FormData>,
     connection: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
-) -> HttpResponse {
+) -> Result<HttpResponse, SubscribeError> {
     let subscription_token = generate_subscription_token();
 
     let subscriber = match Subscriber::create(form.name.clone(), form.email.clone()) {
@@ -94,7 +96,7 @@ pub async fn subscribe(
         return HttpResponse::InternalServerError().finish();
     }
 
-    HttpResponse::Ok().finish()
+    Ok(HttpResponse::Ok().finish())
 }
 
 #[tracing::instrument(

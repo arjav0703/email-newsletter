@@ -1,5 +1,4 @@
 use crate::domain::{Subscriber, SubscriberEmail};
-use anyhow::Result;
 use secrecy::{ExposeSecret, Secret};
 
 use resend_rs::Resend;
@@ -26,7 +25,7 @@ impl EmailClient {
         recipient: SubscriberEmail,
         subject: &str,
         html_content: &str,
-    ) -> Result<()> {
+    ) -> Result<(), resend_rs::Error> {
         let resend = Resend::new(self.resend_api_key.expose_secret());
 
         let from = self.sender.as_ref();
@@ -40,7 +39,10 @@ impl EmailClient {
         Ok(())
     }
 
-    pub async fn send_test_email(&self, recipient: SubscriberEmail) -> Result<()> {
+    pub async fn send_test_email(
+        &self,
+        recipient: SubscriberEmail,
+    ) -> Result<(), resend_rs::Error> {
         let subject = "Test Email from EmailClient";
         let html_content = "<h1>This is a test email sent from EmailClient</h1>";
 
@@ -59,7 +61,7 @@ impl EmailClient {
         &self,
         subscriber: &Subscriber,
         subscription_token: &str,
-    ) -> Result<()> {
+    ) -> Result<(), resend_rs::Error> {
         let confirmation_link = format!(
             "http://{}/subscriptions/confirm?subscription_token={}",
             self.base_url(),

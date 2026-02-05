@@ -1,6 +1,6 @@
 use crate::{domain::Subscriber, email_client::EmailClient};
-use actix_web::{HttpResponse, web};
-// use anyhow::Result;
+use actix_web::{HttpResponse, ResponseError, web};
+use anyhow::Result;
 use chrono::Utc;
 use sqlx::{Executor, PgPool, Transaction};
 use tracing::{error, info};
@@ -127,6 +127,17 @@ async fn insert_subscriber(
     Ok(())
 }
 
+#[derive(Debug)]
+pub struct StoreTokenErr(sqlx::Error);
+
+impl std::fmt::Display for StoreTokenErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Failed to store subscription token: {}", self.0)
+    }
+}
+
+impl ResponseError for StoreTokenErr {}
+
 #[tracing::instrument(
     name = "Store subscription token",
     skip(subscription_token, transaction)
@@ -135,14 +146,14 @@ pub async fn store_token(
     transaction: &mut Transaction<'_, sqlx::Postgres>,
     subscriber_id: Uuid,
     subscription_token: &str,
-) -> Result<(), sqlx::Error> {
+) -> Result<(), StoreTokenErr> {
     let query = sqlx::query!(
         r#"INSERT INTO subscription_tokens (subscription_token, subscriber_id)
         VALUES ($1, $2)"#,
         subscription_token,
         subscriber_id
     );
-    transaction.execute(query).await?;
+    transaction.execute(query).await.map_err(StoreTokenErr)?;
     Ok(())
 }
 

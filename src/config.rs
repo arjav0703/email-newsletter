@@ -1,4 +1,5 @@
 use crate::domain::SubscriberEmail;
+use secrecy::Secret;
 use tracing::{error, info};
 
 #[derive(serde::Deserialize, Debug)]
@@ -12,7 +13,7 @@ pub struct Settings {
 pub struct EmailClientSettings {
     pub base_url: String,
     pub sender_email: SubscriberEmail,
-    pub resend_api_key: String,
+    pub resend_api_key: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Debug)]

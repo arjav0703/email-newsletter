@@ -12,12 +12,12 @@ pub struct QueryData {
 
 #[tracing::instrument(
     name = "Confirming pending subscription (/confirm)",
-    skip(query_parameters)
+    skip(query_parameters, _email_client)
 )]
 pub async fn confirm_subsciption(
     query_parameters: web::Query<QueryData>,
     connection: web::Data<PgPool>,
-    email_client: web::Data<EmailClient>,
+    _email_client: web::Data<EmailClient>,
 ) -> HttpResponse {
     let token = query_parameters.subscription_token.clone();
 
@@ -34,9 +34,11 @@ pub async fn confirm_subsciption(
 
     match id {
         Some(id) => {
-            if set_id_confirmed(&connection, id).await.is_err()
-                | delete_token(&connection, &token).await.is_err()
-            {
+            if set_id_confirmed(&connection, id).await.is_err() {
+                return HttpResponse::InternalServerError().finish();
+            }
+            
+            if delete_token(&connection, &token).await.is_err() {
                 return HttpResponse::InternalServerError().finish();
             }
 

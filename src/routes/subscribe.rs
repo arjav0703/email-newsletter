@@ -1,6 +1,6 @@
 use crate::{
     domain::Subscriber,
-    email_client::{self, EmailClient},
+    email_client::EmailClient,
 };
 use actix_web::{HttpResponse, web};
 use anyhow::Result;

@@ -1,19 +1,19 @@
 use crate::domain::{Subscriber, SubscriberEmail};
 use anyhow::Result;
+use secrecy::{ExposeSecret, Secret};
 
 use resend_rs::Resend;
 use resend_rs::types::CreateEmailBaseOptions;
 use tracing::info;
 
-#[derive(Debug)]
 pub struct EmailClient {
     base_url: String,
     sender: SubscriberEmail,
-    resend_api_key: String,
+    resend_api_key: Secret<String>,
 }
 
 impl EmailClient {
-    pub fn new(base_url: String, sender: SubscriberEmail, resend_api_key: String) -> Self {
+    pub fn new(base_url: String, sender: SubscriberEmail, resend_api_key: Secret<String>) -> Self {
         Self {
             base_url,
             sender,
@@ -27,7 +27,7 @@ impl EmailClient {
         subject: &str,
         html_content: &str,
     ) -> Result<()> {
-        let resend = Resend::new(&self.resend_api_key);
+        let resend = Resend::new(self.resend_api_key.expose_secret());
 
         let from = self.sender.as_ref();
         let to = [recipient.as_ref()];

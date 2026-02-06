@@ -1,18 +1,24 @@
 use actix_web::{
+    http::{header, StatusCode},
     HttpResponse, ResponseError,
-    http::{StatusCode, header},
 };
 
 #[derive(Debug)]
-pub struct PublishError(anyhow::Error);
+pub struct AuthError(anyhow::Error);
 
-impl std::fmt::Display for PublishError {
+impl std::fmt::Display for AuthError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl ResponseError for PublishError {
+impl std::error::Error for AuthError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.0.source()
+    }
+}
+
+impl ResponseError for AuthError {
     fn status_code(&self) -> StatusCode {
         if self.0.to_string().contains("Failed to extract credentials") {
             return StatusCode::BAD_REQUEST;
@@ -32,23 +38,23 @@ impl ResponseError for PublishError {
     }
 }
 
-impl From<anyhow::Error> for PublishError {
+impl From<anyhow::Error> for AuthError {
     fn from(e: anyhow::Error) -> Self {
-        PublishError(e)
+        AuthError(e)
     }
 }
-impl From<sqlx::Error> for PublishError {
+impl From<sqlx::Error> for AuthError {
     fn from(e: sqlx::Error) -> Self {
-        PublishError(anyhow::anyhow!(e))
+        AuthError(anyhow::anyhow!(e))
     }
 }
-impl From<resend_rs::Error> for PublishError {
+impl From<resend_rs::Error> for AuthError {
     fn from(e: resend_rs::Error) -> Self {
-        PublishError(anyhow::anyhow!(e))
+        AuthError(anyhow::anyhow!(e))
     }
 }
-impl From<String> for PublishError {
+impl From<String> for AuthError {
     fn from(e: String) -> Self {
-        PublishError(anyhow::anyhow!(e))
+        AuthError(anyhow::anyhow!(e))
     }
 }

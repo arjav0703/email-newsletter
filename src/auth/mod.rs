@@ -5,9 +5,12 @@ use base64::{Engine, engine::general_purpose::STANDARD};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::{PgPool, query};
 
+mod error;
+pub use error::AuthError;
+
 pub struct Credentials {
-    username: String,
-    password: Secret<String>,
+    pub username: String,
+    pub password: Secret<String>,
 }
 
 impl Credentials {
@@ -54,7 +57,7 @@ impl TryFrom<HeaderMap> for Credentials {
 
 impl Credentials {
     #[tracing::instrument(name = "Validating credentials", skip(self, connection))]
-    pub async fn validate(&self, connection: &PgPool) -> Result<bool> {
+    pub async fn validate(&self, connection: &PgPool) -> Result<bool, AuthError> {
         let password_hash_str = match self.fetch_password_hash_from_database(connection).await {
             Ok(hash) => hash,
             Err(_) => {
@@ -87,7 +90,7 @@ impl Credentials {
     async fn fetch_password_hash_from_database(
         &self,
         connection: &PgPool,
-    ) -> Result<Secret<String>> {
+    ) -> Result<Secret<String>, AuthError> {
         let res = query!(
             r#"
             SELECT password_hash
@@ -102,7 +105,7 @@ impl Credentials {
 
         match res {
             Some(row) => Ok(row.password_hash.into()),
-            None => anyhow::bail!("User not found"),
+            None => Err(AuthError::from(anyhow::anyhow!("User not found"))),
         }
     }
 }

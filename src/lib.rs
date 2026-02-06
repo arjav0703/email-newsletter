@@ -1,11 +1,12 @@
 use actix_web::{
-    App, HttpRequest, HttpServer, Responder,
+    App, HttpServer,
     dev::Server,
     web::{self, Data},
 };
 use anyhow::Result;
 use tracing::info;
 use tracing_actix_web::TracingLogger;
+pub mod auth;
 pub mod config;
 pub mod domain;
 pub mod email_client;
@@ -15,12 +16,13 @@ use email_client::EmailClient;
 mod routes {
     pub mod confirm_subscription;
     pub mod home;
+    pub mod login;
     pub mod newsletter;
     pub mod status;
     pub mod subscribe;
 }
 use routes::{
-    confirm_subscription::confirm_subsciption, home::home, newsletter::publish_newsletter,
+    confirm_subscription::confirm_subsciption, home::home, login, newsletter::publish_newsletter,
     status::status, subscribe::subscribe,
 };
 use sqlx::PgPool;
@@ -41,6 +43,8 @@ pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Resu
             .route("/subscribe", web::post().to(subscribe))
             .route("/subscriptions/confirm", web::get().to(confirm_subsciption))
             .route("/newsletter", web::post().to(publish_newsletter))
+            .route("/login", web::get().to(login::login_get))
+            .route("/login", web::post().to(login::login_post))
     })
     .bind(address)?
     .run();

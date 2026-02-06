@@ -2,9 +2,11 @@ use actix_web::{HttpRequest, HttpResponse, web};
 use anyhow::{Context, Result};
 use sqlx::{PgPool, query};
 
-use crate::{domain::SubscriberEmail, email_client, routes::newsletter::error::PublishError};
-mod auth;
-mod error;
+use crate::{
+    auth::{AuthError, Credentials},
+    domain::SubscriberEmail,
+    email_client,
+};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct NewsLetterData {
@@ -26,19 +28,17 @@ pub async fn publish_newsletter(
     connection: web::Data<PgPool>,
     email_client: web::Data<email_client::EmailClient>,
     request: HttpRequest,
-) -> Result<HttpResponse, PublishError> {
-    let credentials = auth::Credentials::try_from(request.headers().clone())
+) -> Result<HttpResponse, AuthError> {
+    let credentials = Credentials::try_from(request.headers().clone())
         .context("Bad request -> Failed to extract credentials")?;
 
-    match credentials
+    let is_valid = credentials
         .validate(connection.get_ref())
         .await
-        .context("Failed to validate credentials")?
-    {
-        true => (),
-        false => {
-            return Err(anyhow::anyhow!("Unauthorized user").into());
-        }
+        .context("Failed to validate credentials")?;
+
+    if !is_valid {
+        return Err(AuthError::from(anyhow::anyhow!("Unauthorized user")));
     }
 
     let subscribers = get_emails_from_database(connection.get_ref()).await?;

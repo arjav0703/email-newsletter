@@ -25,7 +25,9 @@ pub async fn login_post(
         .context("Failed to validate credentials")?;
 
     if !is_valid {
-        return Err(AuthError::from(anyhow::anyhow!("Invalid credentials")));
+        return Ok(HttpResponse::Unauthorized()
+            .append_header((LOCATION, "/login"))
+            .finish());
     }
 
     Ok(HttpResponse::SeeOther()

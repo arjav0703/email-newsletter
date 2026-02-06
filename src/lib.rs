@@ -14,13 +14,14 @@ use email_client::EmailClient;
 
 mod routes {
     pub mod confirm_subscription;
+    pub mod home;
     pub mod newsletter;
     pub mod status;
     pub mod subscribe;
 }
 use routes::{
-    confirm_subscription::confirm_subsciption, newsletter::publish_newsletter, status::status,
-    subscribe::subscribe,
+    confirm_subscription::confirm_subsciption, home::home, newsletter::publish_newsletter,
+    status::status, subscribe::subscribe,
 };
 use sqlx::PgPool;
 
@@ -35,7 +36,7 @@ pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Resu
             .app_data(connection.clone())
             .app_data(email_client.clone())
             .wrap(TracingLogger::default())
-            .route("/", web::get().to(greet))
+            .route("/", web::get().to(home))
             .route("/status", web::get().to(status))
             .route("/subscribe", web::post().to(subscribe))
             .route("/subscriptions/confirm", web::get().to(confirm_subsciption))
@@ -45,9 +46,4 @@ pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Resu
     .run();
 
     Ok(server)
-}
-
-async fn greet(req: HttpRequest) -> impl Responder {
-    let name = req.match_info().get("name").unwrap_or("World");
-    format!("Hello {}!", &name)
 }

@@ -55,10 +55,12 @@ impl TryFrom<HeaderMap> for Credentials {
 impl Credentials {
     #[tracing::instrument(name = "Validating credentials", skip(self, connection))]
     pub async fn validate(&self, connection: &PgPool) -> Result<bool> {
-        let password_hash_str = self
-            .fetch_password_hash_from_database(connection)
-            .await
-            .context("Failed to fetch password hash from database")?;
+        let password_hash_str = match self.fetch_password_hash_from_database(connection).await {
+            Ok(hash) => hash,
+            Err(_) => {
+                return Ok(false);
+            }
+        };
 
         let password = self.password.clone();
 
@@ -94,10 +96,13 @@ impl Credentials {
             "#,
             self.username
         )
-        .fetch_one(connection)
+        .fetch_optional(connection)
         .await
         .context("Failed to fetch user credentials from the database")?;
 
-        Ok(res.password_hash.into())
+        match res {
+            Some(row) => Ok(row.password_hash.into()),
+            None => anyhow::bail!("User not found"),
+        }
     }
 }

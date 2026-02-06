@@ -1,5 +1,7 @@
 mod helpers;
+use argon2::{PasswordHasher, password_hash::SaltString};
 use helpers::{send_subscribe_req, spawn_app};
+use sqlx::{PgPool, query};
 
 #[tokio::test]
 async fn newsletter_returns_400_for_invalid_data() {
@@ -20,7 +22,7 @@ async fn newsletter_returns_400_for_invalid_data() {
 }
 
 #[tokio::test]
-async fn newsletter_returns_200_for_valid_data() {
+async fn newsletter_rejects_unauthorized_users() {
     let app = spawn_app().await;
     let address = &app.address;
 
@@ -32,17 +34,22 @@ async fn newsletter_returns_200_for_valid_data() {
 
     let response = reqwest::Client::new()
         .post(format!("http://{address}/newsletter"))
+        .basic_auth("wrong_user", Some("wrong_password"))
         .json(&test_data)
         .send()
         .await
         .expect("Failed to execute request");
-    assert_eq!(response.status().as_u16(), 200);
+    assert_eq!(response.status().as_u16(), 401);
 }
 
 #[tokio::test]
 async fn newsletter_sends_email_to_confirmed_subscribers() {
     let app = spawn_app().await;
     let address = &app.address;
+
+    add_test_user(&app.db_pool, "test_user", "test_password")
+        .await
+        .expect("Failed to create test user");
 
     let body = "name=arjav&email=arjavjain0703%40gmail.com".to_string();
     let resp = send_subscribe_req(address, body)
@@ -58,11 +65,32 @@ async fn newsletter_sends_email_to_confirmed_subscribers() {
 
     let response = reqwest::Client::new()
         .post(format!("http://{address}/newsletter"))
+        .basic_auth("test_user", Some("test_password"))
         .json(&test_data)
         .send()
         .await
         .expect("Failed to execute request");
     assert_eq!(response.status().as_u16(), 200);
+}
 
-    todo!("confirm the subscriber")
+async fn add_test_user(connection: &PgPool, username: &str, password: &str) -> anyhow::Result<()> {
+    let salt = SaltString::generate(&mut rand_core::OsRng);
+    let password_hash = argon2::Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
+        .map_err(|e| anyhow::anyhow!("Failed to hash password: {:?}", e))?
+        .to_string();
+
+    query!(
+        r"
+        INSERT INTO users (user_id, username, password_hash)
+        VALUES ($1, $2, $3)
+        ",
+        uuid::Uuid::new_v4(),
+        username,
+        password_hash
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
 }

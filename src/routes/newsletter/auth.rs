@@ -23,6 +23,7 @@ impl Credentials {
 }
 
 impl TryFrom<HeaderMap> for Credentials {
+    #[tracing::instrument(name = "Extracting credentials from headers", skip(headers))]
     fn try_from(headers: HeaderMap) -> Result<Self> {
         let auth_header = headers
             .get(AUTHORIZATION)
@@ -52,10 +53,42 @@ impl TryFrom<HeaderMap> for Credentials {
 }
 
 impl Credentials {
+    #[tracing::instrument(name = "Validating credentials", skip(self, connection))]
     pub async fn validate(&self, connection: &PgPool) -> Result<bool> {
+        let password_hash_str = self
+            .fetch_password_hash_from_database(connection)
+            .await
+            .context("Failed to fetch password hash from database")?;
+
+        let password = self.password.clone();
+
+        let is_valid = tokio::task::spawn_blocking(move || {
+            let password_hash =
+                PasswordHash::new(password_hash_str.expose_secret()).map_err(|e| {
+                    anyhow::anyhow!("Failed to parse password hash from database: {:?}", e)
+                })?;
+
+            let is_valid = Argon2::default()
+                .verify_password(password.expose_secret().as_bytes(), &password_hash)
+                .is_ok();
+
+            Ok::<bool, anyhow::Error>(is_valid)
+        })
+        .await
+        .context("Password verification task panicked")?
+        .context("Password verification failed")?;
+
+        Ok(is_valid)
+    }
+
+    #[tracing::instrument(name = "Fetching password hash from database", skip(self, connection))]
+    async fn fetch_password_hash_from_database(
+        &self,
+        connection: &PgPool,
+    ) -> Result<Secret<String>> {
         let res = query!(
             r#"
-            SELECT username, password_hash
+            SELECT password_hash
             FROM users
             WHERE username = $1
             "#,
@@ -63,16 +96,8 @@ impl Credentials {
         )
         .fetch_one(connection)
         .await
-        .context("Failed to fetch user from database")?;
+        .context("Failed to fetch user credentials from the database")?;
 
-        let password_hash = PasswordHash::new(&res.password_hash)
-            .map_err(|e| anyhow::anyhow!("Failed to parse password hash from database: {:?}", e))?;
-
-        let argon2 = Argon2::default();
-        let is_valid = argon2
-            .verify_password(self.password.expose_secret().as_bytes(), &password_hash)
-            .is_ok();
-
-        Ok(is_valid)
+        Ok(res.password_hash.into())
     }
 }

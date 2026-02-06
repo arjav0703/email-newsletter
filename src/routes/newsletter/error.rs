@@ -1,4 +1,7 @@
-use actix_web::{ResponseError, http::StatusCode};
+use actix_web::{
+    HttpResponse, ResponseError,
+    http::{StatusCode, header},
+};
 
 #[derive(Debug)]
 pub struct PublishError(anyhow::Error);
@@ -11,6 +14,20 @@ impl std::fmt::Display for PublishError {
 
 impl ResponseError for PublishError {
     fn status_code(&self) -> StatusCode {
+        if self.0.to_string().contains("Failed to extract credentials") {
+            return StatusCode::BAD_REQUEST;
+        }
+
+        if self.0.to_string().contains("Unauthorized") {
+            let mut h = HttpResponse::new(StatusCode::UNAUTHORIZED);
+            h.headers_mut().insert(
+                header::WWW_AUTHENTICATE,
+                header::HeaderValue::from_static("Basic realm=\"Restricted Area\""),
+            );
+
+            return StatusCode::UNAUTHORIZED;
+        }
+
         StatusCode::INTERNAL_SERVER_ERROR
     }
 }

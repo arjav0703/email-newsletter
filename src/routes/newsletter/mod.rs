@@ -1,8 +1,9 @@
-use actix_web::{HttpResponse, web};
+use actix_web::{HttpRequest, HttpResponse, web};
 use anyhow::{Context, Result};
 use sqlx::{PgPool, query};
 
 use crate::{domain::SubscriberEmail, email_client, routes::newsletter::error::PublishError};
+mod auth;
 mod error;
 
 #[derive(serde::Deserialize, Debug)]
@@ -18,13 +19,28 @@ struct ConfirmedSubscriber {
 
 #[tracing::instrument(
     name = "Publishing newsletter",
-    skip(newsletter, connection, email_client)
+    skip(newsletter, connection, email_client, request)
 )]
 pub async fn publish_newsletter(
     newsletter: web::Json<NewsLetterData>,
     connection: web::Data<PgPool>,
     email_client: web::Data<email_client::EmailClient>,
+    request: HttpRequest,
 ) -> Result<HttpResponse, PublishError> {
+    let credentials = auth::Credentials::try_from(request.headers().clone())
+        .context("Bad request -> Failed to extract credentials")?;
+
+    match credentials
+        .validate(connection.get_ref())
+        .await
+        .context("Failed to validate credentials")?
+    {
+        true => (),
+        false => {
+            return Err(anyhow::anyhow!("Unauthorized user").into());
+        }
+    }
+
     let subscribers = get_emails_from_database(connection.get_ref()).await?;
 
     for subscrber in subscribers {

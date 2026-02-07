@@ -8,6 +8,7 @@ pub struct Settings {
     pub application_settings: ApplicationSettings,
     pub email_settings: EmailClientSettings,
     pub redis_settings: RedisSettings,
+    pub test_mode: bool,
 }
 
 #[derive(serde::Deserialize, Debug)]

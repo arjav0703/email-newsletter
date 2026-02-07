@@ -1,6 +1,6 @@
 use anyhow::Result;
 use email_newsletter::email_client::EmailClient;
-use email_newsletter::run;
+use email_newsletter::{auth, run};
 use email_newsletter::{
     config,
     telemetry::{get_subscriber, init_subscriber},
@@ -27,6 +27,10 @@ async fn main() -> Result<()> {
         error!("Failed to connect to the database: {}", e);
         e
     })?;
+
+    if config.test_mode {
+        auth::create_test_user(&connection).await?;
+    }
 
     run(&address, connection, email_config, redis_uri)
         .await?

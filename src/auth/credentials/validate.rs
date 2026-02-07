@@ -1,8 +1,7 @@
 use super::Credentials;
-use anyhow::{Context, Result};
-
 use crate::auth::AuthError;
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::SaltString};
+use anyhow::{Context, Result};
+use argon2::{Argon2, PasswordHash, PasswordVerifier};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::{PgPool, query};
 

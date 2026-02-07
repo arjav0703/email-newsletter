@@ -1,7 +1,5 @@
 use crate::auth::Credentials;
 use anyhow::{Context, Result};
-use argon2::{Argon2, PasswordHasher, password_hash::SaltString};
-use secrecy::ExposeSecret;
 use sqlx::PgPool;
 
 impl Credentials {
@@ -12,19 +10,7 @@ impl Credentials {
     pub async fn add_user_to_db(&self, connection: &PgPool) -> Result<()> {
         let password = self.password.clone();
 
-        let password_hash = tokio::task::spawn_blocking(move || {
-            let salt = SaltString::generate(&mut argon2::password_hash::rand_core::OsRng);
-            let argon2 = Argon2::default();
-
-            argon2
-                .hash_password(password.expose_secret().as_bytes(), &salt)
-                .map_err(|e| anyhow::anyhow!("Failed to hash password: {}", e))
-                .map(|hash| hash.to_string())
-        })
-        .await
-        .context("Password hashing task panicked")?
-        .context("Failed to hash password")?;
-
+        let password_hash = Credentials::generate_password_hash(password).await?;
         sqlx::query!(
             r#"
             INSERT INTO users (user_id, username, password_hash)

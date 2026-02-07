@@ -1,4 +1,5 @@
 use crate::auth::{AuthError, Credentials};
+use actix_session::Session;
 use actix_web::{HttpResponse, http::header::LOCATION, web};
 use anyhow::{Context, Result};
 use secrecy::Secret;
@@ -10,9 +11,11 @@ pub struct LoginFormData {
     pub password: Secret<String>,
 }
 
+#[tracing::instrument(name = "Login Form [POST]", skip(request_data, connection, session))]
 pub async fn login_post(
     request_data: web::Form<LoginFormData>,
     connection: web::Data<PgPool>,
+    session: Session,
 ) -> Result<HttpResponse, AuthError> {
     let credentials = Credentials {
         username: request_data.username.clone(),
@@ -24,13 +27,19 @@ pub async fn login_post(
         .await
         .context("Failed to validate credentials")?;
 
-    if !is_valid {
-        return Ok(HttpResponse::Unauthorized()
-            .append_header((LOCATION, "/login"))
-            .finish());
+    match is_valid {
+        false => {
+            return Ok(HttpResponse::Unauthorized()
+                .append_header((LOCATION, "/login"))
+                .finish());
+        }
+        true => {
+            session
+                .insert("username", request_data.username.clone())
+                .context("Failed to store username in session")?;
+            return Ok(HttpResponse::SeeOther()
+                .append_header((LOCATION, "/admin/dashboard"))
+                .finish());
+        }
     }
-
-    Ok(HttpResponse::SeeOther()
-        .append_header((LOCATION, "/admin/dashboard"))
-        .finish())
 }

@@ -1,8 +1,9 @@
 use anyhow::Result;
-use email_newsletter::email_client::EmailClient;
-use email_newsletter::{auth, run};
 use email_newsletter::{
     config,
+    domain::add_user::create_test_user,
+    email_client::EmailClient,
+    run,
     telemetry::{get_subscriber, init_subscriber},
 };
 use tracing::{error, info};
@@ -29,7 +30,7 @@ async fn main() -> Result<()> {
     })?;
 
     if config.test_mode {
-        auth::create_test_user(&connection).await?;
+        create_test_user(&connection).await?;
     }
 
     run(&address, connection, email_config, redis_uri)

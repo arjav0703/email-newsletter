@@ -6,9 +6,9 @@ pub async fn dashboard(session: Session) -> HttpResponse {
     let username: Option<String> = session.get("username").unwrap_or(None);
 
     if username.is_none() {
-        return HttpResponse::Unauthorized()
-            .insert_header((LOCATION, "/login"))
-            .body("Unauthorized: Please log in to access the admin dashboard.");
+        return HttpResponse::SeeOther()
+            .insert_header((LOCATION, "/login?error=unauthorized"))
+            .finish();
     }
 
     HttpResponse::Ok().body("Welcome to the admin dashboard!")

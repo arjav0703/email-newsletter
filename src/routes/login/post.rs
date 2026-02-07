@@ -29,8 +29,8 @@ pub async fn login_post(
 
     match is_valid {
         false => {
-            return Ok(HttpResponse::Unauthorized()
-                .append_header((LOCATION, "/login"))
+            return Ok(HttpResponse::SeeOther()
+                .append_header((LOCATION, "/login?error=invalid_credentials"))
                 .finish());
         }
         true => {

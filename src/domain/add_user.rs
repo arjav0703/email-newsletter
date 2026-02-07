@@ -45,7 +45,10 @@ pub async fn create_test_user(connection: &PgPool) -> Result<()> {
     tracing::warn!("Adding test user to the database");
 
     let test_credentials = Credentials::from("testuser", "password123")?;
-    test_credentials.add_user_to_db(connection).await?;
+    test_credentials
+        .add_user_to_db(connection)
+        .await
+        .unwrap_or_default();
 
     Ok(())
 }

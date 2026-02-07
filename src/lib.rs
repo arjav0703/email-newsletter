@@ -27,9 +27,11 @@ mod routes {
 }
 use routes::{
     admin, confirm_subscription::confirm_subsciption, home::home, login,
-    newsletter::publish_newsletter, status::status, subscribe::subscribe,
+    newsletter::publish_newsletter, status::status, subscribe::subscribe_post,
 };
 use sqlx::PgPool;
+
+use crate::routes::subscribe::subscribe_get;
 
 pub async fn run(
     address: &str,
@@ -56,7 +58,8 @@ pub async fn run(
             ))
             .route("/", web::get().to(home))
             .route("/status", web::get().to(status))
-            .route("/subscribe", web::post().to(subscribe))
+            .route("/subscribe", web::get().to(subscribe_get))
+            .route("/subscribe", web::post().to(subscribe_post))
             .route("/subscriptions/confirm", web::get().to(confirm_subsciption))
             .route("/newsletter", web::post().to(publish_newsletter))
             .route("/login", web::get().to(login::login_get))

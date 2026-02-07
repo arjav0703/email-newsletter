@@ -13,6 +13,7 @@ docker run \
   -e POSTGRES_PASSWORD=${DB_PASSWORD} \
   -e POSTGRES_DB=${DB_NAME} \
   -p "${DB_PORT}":5432 \
+  --name "postgres_db" \
   -d postgres \
   postgres -N 1000
 

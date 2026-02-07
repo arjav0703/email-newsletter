@@ -28,6 +28,7 @@ resend-rs = "0.21.0"
 secrecy = { version = "0.8", features = ["serde"] }
 argon2 = "0.5.3"
 base64 = "0.22.1"
+actix-session = { version = "0.11.0", features = ["redis-session-rustls"] }
 
 [dependencies.sqlx]
 version = "0.8.6"

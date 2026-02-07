@@ -21,8 +21,10 @@ pub async fn spawn_app() -> TestApp {
         config.email_settings.sender_email.clone(),
         config.email_settings.resend_api_key.clone(),
     );
+    let redis_uri = config.redis_settings.uri.clone();
 
-    let server = email_newsletter::run(&address, pool.clone(), email_config)
+    let server = email_newsletter::run(&address, pool.clone(), email_config, redis_uri)
+        .await
         .expect("Failed to bind address");
     let _ = tokio::spawn(server);
 

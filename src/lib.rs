@@ -1,9 +1,12 @@
+use actix_session::{SessionMiddleware, storage::RedisSessionStore};
 use actix_web::{
     App, HttpServer,
+    cookie::Key,
     dev::Server,
     web::{self, Data},
 };
 use anyhow::Result;
+use secrecy::{ExposeSecret, Secret};
 use tracing::info;
 use tracing_actix_web::TracingLogger;
 pub mod auth;
@@ -27,8 +30,16 @@ use routes::{
 };
 use sqlx::PgPool;
 
-pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Result<Server> {
+pub async fn run(
+    address: &str,
+    connection: PgPool,
+    email_client: EmailClient,
+    redis_uri: Secret<String>,
+) -> Result<Server> {
     info!("Starting server at http://{}", address);
+
+    let redis_store = RedisSessionStore::new(redis_uri.expose_secret()).await?;
+    let secret_key = Key::generate();
 
     let connection = Data::new(connection);
     let email_client = Data::new(email_client);
@@ -38,6 +49,10 @@ pub fn run(address: &str, connection: PgPool, email_client: EmailClient) -> Resu
             .app_data(connection.clone())
             .app_data(email_client.clone())
             .wrap(TracingLogger::default())
+            .wrap(SessionMiddleware::new(
+                redis_store.clone(),
+                secret_key.clone(),
+            ))
             .route("/", web::get().to(home))
             .route("/status", web::get().to(status))
             .route("/subscribe", web::post().to(subscribe))

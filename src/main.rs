@@ -22,12 +22,14 @@ async fn main() -> Result<()> {
         config.email_settings.sender_email.clone(),
         config.email_settings.resend_api_key.clone(),
     );
-
+    let redis_uri = config.redis_settings.uri.clone();
     let connection = config.database_settings.try_connect().await.map_err(|e| {
         error!("Failed to connect to the database: {}", e);
         e
     })?;
 
-    run(&address, connection, email_config)?.await?;
+    run(&address, connection, email_config, redis_uri)
+        .await?
+        .await?;
     Ok(())
 }

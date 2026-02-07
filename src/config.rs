@@ -7,6 +7,12 @@ pub struct Settings {
     pub database_settings: DatabaseSettings,
     pub application_settings: ApplicationSettings,
     pub email_settings: EmailClientSettings,
+    pub redis_settings: RedisSettings,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct RedisSettings {
+    pub uri: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Debug)]

@@ -17,6 +17,7 @@ pub mod telemetry;
 use email_client::EmailClient;
 
 mod routes {
+    pub mod admin;
     pub mod confirm_subscription;
     pub mod home;
     pub mod login;
@@ -25,8 +26,8 @@ mod routes {
     pub mod subscribe;
 }
 use routes::{
-    confirm_subscription::confirm_subsciption, home::home, login, newsletter::publish_newsletter,
-    status::status, subscribe::subscribe,
+    admin, confirm_subscription::confirm_subsciption, home::home, login,
+    newsletter::publish_newsletter, status::status, subscribe::subscribe,
 };
 use sqlx::PgPool;
 
@@ -60,6 +61,7 @@ pub async fn run(
             .route("/newsletter", web::post().to(publish_newsletter))
             .route("/login", web::get().to(login::login_get))
             .route("/login", web::post().to(login::login_post))
+            .route("/admin/dashboard", web::get().to(admin::dashboard))
     })
     .bind(address)?
     .run();

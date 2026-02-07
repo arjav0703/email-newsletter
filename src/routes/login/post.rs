@@ -31,6 +31,6 @@ pub async fn login_post(
     }
 
     Ok(HttpResponse::SeeOther()
-        .append_header((LOCATION, "/"))
+        .append_header((LOCATION, "/admin/dashboard"))
         .finish())
 }

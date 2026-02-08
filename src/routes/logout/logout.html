@@ -2,13 +2,38 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>Logout</title>
+  <meta charset="utf-8">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      background-color: #111827;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+  <title>Logout Successful</title>
 </head>
 
 <body>
-  <h1>You have been logged out.</h1>
-  <a href="/">Go back to home page</a>
+  <main>
+    <div class="nes-container is-dark with-title center-container font-['Press_Start_2P'] text-l w-7xl leading-relaxed">
+      <p class="title">Email Newsletter Service</p>
+      <ul class="py-3 text-xl">
+        <li><a href="/"><- Go to Home</a></li>
+      </ul>
+
+      <p class="text-3xl nes-text is-success">You have been successfully logged out.</p>
+    </div>
+  </main>
 </body>
 
 </html>

@@ -35,7 +35,10 @@ pub async fn spawn_app() -> TestApp {
     TestApp {
         address,
         db_pool: pool,
-        client: Client::new(),
+        client: Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .unwrap(),
     }
 }
 

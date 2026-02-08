@@ -68,6 +68,7 @@ pub async fn run(
             .route("/logout", web::get().to(logout))
             .route("/admin/dashboard", web::get().to(admin::dashboard))
             .route("/admin/password", web::get().to(admin::password_get))
+            .route("/admin/newsletter", web::get().to(admin::newsletter_get))
             .route("/admin/password", web::post().to(admin::password_post))
     })
     .bind(address)?

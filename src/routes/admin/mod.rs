@@ -4,6 +4,9 @@ use actix_web::{HttpResponse, http::header::LOCATION};
 mod password;
 pub use password::{password_get, password_post};
 
+mod newsletter;
+pub use newsletter::newsletter_get;
+
 #[tracing::instrument(name = "Admin Dashboard", skip(session))]
 pub async fn dashboard(session: Session) -> HttpResponse {
     if let Some(response) = SessionWrapper::new(session).redirect_to_login_if_not_signed_in() {

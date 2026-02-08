@@ -3,5 +3,5 @@ use actix_web::HttpResponse;
 
 pub async fn logout(session: Session) -> HttpResponse {
     session.purge();
-    HttpResponse::Ok().body("Logged out successfully")
+    HttpResponse::Ok().body(include_str!("logout.html"))
 }

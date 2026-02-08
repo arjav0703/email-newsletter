@@ -1,5 +1,6 @@
 mod helpers;
-use actix_web::HttpResponse;
+use std::collections::HashMap;
+
 use anyhow::Result;
 use helpers::spawn_app;
 use reqwest::Client;
@@ -14,34 +15,27 @@ async fn check_auth() -> Result<()> {
     let app = spawn_app().await;
     add_test_user(&app.db_pool, username, password).await?;
 
-    let status = login(username, password, &app.address).await.unwrap();
+    let status = login(username, password, &app.address, app.client)
+        .await
+        .unwrap();
     assert_eq!(status, 200);
 
     Ok(())
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
-struct FormData {
-    pub username: String,
-    pub password: String,
-}
+async fn login(username: &str, password: &str, address: &str, client: Client) -> Result<u16> {
+    let mut formdata = HashMap::new();
+    formdata.insert("username", username);
+    formdata.insert("password", password);
 
-async fn login(username: &str, password: &str, address: &str) -> Result<u16> {
-    let client = Client::new();
-    let formdata = FormData {
-        username: username.to_string(),
-        password: password.to_string(),
-    };
     let req = client
         .post(format!("http://{address}/login"))
-        // .basic_auth(username, Some(password))
         .form(&formdata)
         .send()
         .await
         .unwrap();
     let status = req.status();
-    let header = req.headers();
+    let header = req.text().await.unwrap();
     dbg!(header, status);
-    todo!();
-    // Ok(1)
+    Ok(1)
 }

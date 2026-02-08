@@ -2,11 +2,13 @@ use argon2::PasswordHasher;
 use argon2::password_hash::SaltString;
 use email_newsletter::config::Settings;
 use email_newsletter::email_client::EmailClient;
+use reqwest::Client;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
+    pub client: Client,
 }
 
 pub async fn spawn_app() -> TestApp {
@@ -33,6 +35,7 @@ pub async fn spawn_app() -> TestApp {
     TestApp {
         address,
         db_pool: pool,
+        client: Client::new(),
     }
 }
 

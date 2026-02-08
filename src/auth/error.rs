@@ -1,6 +1,6 @@
 use actix_web::{
-    http::{header, StatusCode},
     HttpResponse, ResponseError,
+    http::{StatusCode, header},
 };
 
 #[derive(Debug)]
@@ -20,7 +20,11 @@ impl std::error::Error for AuthError {
 
 impl ResponseError for AuthError {
     fn status_code(&self) -> StatusCode {
-        if self.0.to_string().contains("Failed to extract credentials") {
+        if self
+            .0
+            .to_string()
+            .contains("Failed to validate credentials")
+        {
             return StatusCode::BAD_REQUEST;
         }
 

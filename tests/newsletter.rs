@@ -1,7 +1,5 @@
 mod helpers;
-use argon2::{PasswordHasher, password_hash::SaltString};
-use helpers::{send_subscribe_req, spawn_app};
-use sqlx::{PgPool, query};
+use helpers::{add_test_user, send_subscribe_req, spawn_app};
 
 #[tokio::test]
 async fn newsletter_returns_400_for_invalid_data() {
@@ -71,26 +69,4 @@ async fn newsletter_sends_email_to_confirmed_subscribers() {
         .await
         .expect("Failed to execute request");
     assert_eq!(response.status().as_u16(), 200);
-}
-
-async fn add_test_user(connection: &PgPool, username: &str, password: &str) -> anyhow::Result<()> {
-    let salt = SaltString::generate(&mut rand_core::OsRng);
-    let password_hash = argon2::Argon2::default()
-        .hash_password(password.as_bytes(), &salt)
-        .map_err(|e| anyhow::anyhow!("Failed to hash password: {:?}", e))?
-        .to_string();
-
-    query!(
-        r"
-        INSERT INTO users (user_id, username, password_hash)
-        VALUES ($1, $2, $3)
-        ",
-        uuid::Uuid::new_v4(),
-        username,
-        password_hash
-    )
-    .execute(connection)
-    .await?;
-
-    Ok(())
 }

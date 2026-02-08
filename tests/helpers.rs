@@ -1,3 +1,5 @@
+use argon2::PasswordHasher;
+use argon2::password_hash::SaltString;
 use email_newsletter::config::Settings;
 use email_newsletter::email_client::EmailClient;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
@@ -79,4 +81,30 @@ pub async fn send_subscribe_req(address: &str, body: String) -> Result<reqwest::
         .await
         .expect("Failed to execute request.");
     Ok(response)
+}
+
+pub async fn add_test_user(
+    connection: &PgPool,
+    username: &str,
+    password: &str,
+) -> anyhow::Result<()> {
+    let salt = SaltString::generate(&mut rand_core::OsRng);
+    let password_hash = argon2::Argon2::default()
+        .hash_password(password.as_bytes(), &salt)
+        .map_err(|e| anyhow::anyhow!("Failed to hash password: {:?}", e))?
+        .to_string();
+
+    sqlx::query!(
+        r"
+        INSERT INTO users (user_id, username, password_hash)
+        VALUES ($1, $2, $3)
+        ",
+        uuid::Uuid::new_v4(),
+        username,
+        password_hash
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
 }

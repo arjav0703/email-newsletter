@@ -1,17 +1,42 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en" class="h-full">
 
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      background-color: #111827;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+  <title>Admin Dashboard</title>
 </head>
 
 <body>
-  <h2>Admin Dashboard</h2>
-  <ul>
-    <li><a href="/">HomePage</a></li>
-    <li><a href="/admin/password">Change Password</a></li>
-  </ul>
+  <main>
+    <div
+      class="nes-container is-dark with-title center-container font-['Press_Start_2P'] w-7xl text-2xl leading-relaxed">
+      <p class="title">Email Newsletter Service</p>
+      <h1 class="text-3xl ">Admin Dashboard</h1>
+      <ul>
+        <li><a href="/logout"><- Logout</a></li>
+        <li><a href="/"><- Homepage</a></li>
+        <li><a href="/admin/newsletter">-> Manage Newsletter</a></li>
+        <li><a href="/admin/password">-> Change Password</a></li>
+      </ul>
+    </div>
+  </main>
 </body>
 
 </html>

@@ -1,17 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 
 <head>
   <meta charset="utf-8">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      background-color: #111827;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
   <title>Home</title>
 </head>
 
 <body>
-  <h1>Email Newsletter Service</h1>
-  <ul>
-    <li><a href="/login">Login</a></li>
-    <li><a href="/admin/dashboard">Admin Dashboard</a></li>
-  </ul>
-
-
+  <main>
+    <div
+      class="nes-container is-dark center-container font-['Press_Start_2P'] text-2xl text-center w-7xl leading-relaxed">
+      <h1 class="text-3xl">Email Newsletter Service</h1>
+      <ul>
+        <li><a href="/login">-> Login</a></li>
+        <li><a href="/admin/dashboard">-> Admin Dashboard</a></li>
+      </ul>
+    </div>
+  </main>
 </body>
+
+</html>

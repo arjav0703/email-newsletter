@@ -4,7 +4,23 @@
 <head>
   <meta charset=utf-8">
   <title>Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
+    body {
+      display: flex;
+      justify-content: center;
+      background-color: #111827;
+    }
+
+    main {
+      display: flex;
+      justify-content: center;
+    }
+
     .error-message {
       color: #d32f2f;
       background-color: #ffebee;
@@ -17,19 +33,30 @@
 </head>
 
 <body>
-  <div id="error-container"></div>
+  <main class="flex flex-col">
+    <div id="error-container"></div>
+    <div
+      class="nes-container is-dark with-title center-container font-['Press_Start_2P'] w-7xl text-xl leading-relaxed">
+      <p class="title">Email Newsletter Service</p>
+      <ul class="py-3 text-xl">
+        <li><a href="/"><- Back</a></li>
+      </ul>
 
-  <form action="/login" method="post">
-    <label>Username
-      <input type="text" placeholder="Enter Username..." name="username">
-    </label>
-
-    <label>Password
-      <input type="password" placeholder="Enter Password..." name="password">
-    </label>
-
-    <button type="submit">Login</button>
-  </form>
+      <h1 class="text-4xl nes-text is-success">Login</h1>
+      <form action="/login" method="post" class="p-7">
+        <label class="nes-text is-warning">Username
+          <input type="text" placeholder="your username..." name="username" id="inline_field"
+            class="nes-input is-warning">
+        </label>
+        <label class="nes-text is-warning">Username
+          <input type="password" placeholder="Password..." name="password" id="inline_field"
+            class="nes-input is-warning">
+        </label>
+        <br>
+        <button type="submit" class="nes-btn is-success">Login</button>
+      </form>
+    </div>
+  </main>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);

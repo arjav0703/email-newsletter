@@ -3,6 +3,7 @@
 ## Running it locally
 #### Prerequisites:
 - Docker
+OR
 - PostgreSQL (optional)
 - Redis (optional)
 - sqlx cli (https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md)
@@ -17,7 +18,7 @@
 
 2. Setup Config file (see example.config.toml for reference):
    ```bash
-   cp example.config.toml config.toml
+   cp example.config.toml config.yaml
    ```
 
 3. Setup PostgreSQL database:
@@ -31,7 +32,7 @@
         ```bash
         sqlx migrate run
         ```
-        - Update the `config.toml` file with your database credentials
+        - Update the `config.yaml` file with your database credentials
 
 4. Setup Redis:
     - Using docker (automatic):
@@ -40,7 +41,7 @@
         ```
     - Using local Redis (manual):
         - Install Redis and start the server
-        - Update the `config.toml` file with your Redis credentials
+        - Update the `config.yaml` file with your Redis credentials
 
 5. Run the application:
     - With Cargo:

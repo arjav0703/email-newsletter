@@ -1,0 +1,81 @@
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: newsletter_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: newsletter
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - newsletter_network
+
+  redis:
+    image: redis:latest
+    container_name: newsletter_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - newsletter_network
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migrate
+    container_name: newsletter_migration
+    environment:
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/newsletter
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - newsletter_network
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: newsletter_app
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/newsletter
+      - REDIS_URI=redis://redis:6379
+      - SQLX_OFFLINE=true
+
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./config.docker.yaml:/app/config.yaml:ro
+      - ./migrations:/app/migrations:ro
+    networks:
+      - newsletter_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  newsletter_network:
+    driver: bridge

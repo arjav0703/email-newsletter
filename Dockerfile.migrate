@@ -1,0 +1,8 @@
+FROM rust:latest
+
+RUN cargo install sqlx-cli --no-default-features --features postgres
+
+WORKDIR /app
+COPY migrations ./migrations
+
+ENTRYPOINT ["sqlx", "migrate", "run"]

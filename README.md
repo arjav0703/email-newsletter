@@ -8,8 +8,23 @@ OR
 - Redis (optional)
 - sqlx cli (https://github.com/launchbadge/sqlx/blob/main/sqlx-cli/README.md)
 - Rust and Cargo 
+#### Automatic setup with Docker Compose:
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/arjav0703/email-newsletter.git
+    cd email-newsletter
+    ```
 
-#### Steps:
+2. Setup Config file (see example.config.toml for reference):
+    ```bash
+    cp example.config.toml config.yaml
+    ```
+3. Run the application with Docker Compose:
+    ```bash
+    docker-compose up -d --build
+    ```
+    
+#### Manual setup:
 1. Clone the repository:
    ```bash
    git clone https://github.com/arjav0703/email-newsletter.git

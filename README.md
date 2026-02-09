@@ -71,3 +71,10 @@ OR
 
 6. Visit the URL `http://localhost:8000` (or the one you setup) to access the application.
 
+
+### Acknowledgement
+This project was built while following the book "[Zero To Production In Rust](https://www.zero2prod.com/)" by Luca Palmieri. Though the core architecture of the project was inspired by the book, I tried to challenge myselves to do the implementation on my own as much as possible. I also additional features and improvements to the original project (like a fully functional frontend, Docker support and other code changes). Also, i chose a different way to send emails (using `resend` instead of `Postmark` service).
+
+### AI usage Disclosure
+I had tab completion turned on and it helped me to develop faster. I did not use any specific AI IDEs (like cursor, claude code) and sticked to neovim for development. The only area where I used AI relatively more than other parts is debugging the authentication test logic. 
+

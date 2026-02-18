@@ -25,14 +25,14 @@ mod routes {
     pub mod newsletter;
     pub mod status;
     pub mod subscribe;
+    pub mod unsubscribe;
 }
 use routes::{
-    admin, confirm_subscription::confirm_subsciption, home::home, login,
-    newsletter::publish_newsletter, status::status, subscribe::subscribe_post,
+    admin, confirm_subscription::confirm_subsciption, home::home, login, logout::logout,
+    newsletter::publish_newsletter, status::status, subscribe::subscribe_get,
+    subscribe::subscribe_post, unsubscribe::unsubscribe_get,
 };
 use sqlx::PgPool;
-
-use crate::routes::{logout::logout, subscribe::subscribe_get};
 
 pub async fn run(
     address: &str,
@@ -66,6 +66,7 @@ pub async fn run(
             .route("/login", web::post().to(login::login_post))
             .route("/login", web::get().to(login::login_get))
             .route("/logout", web::get().to(logout))
+            .route("/unsubscribe", web::get().to(unsubscribe_get))
             .route("/admin/dashboard", web::get().to(admin::dashboard))
             .route("/admin/password", web::get().to(admin::password_get))
             .route("/admin/newsletter", web::get().to(admin::newsletter_get))

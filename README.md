@@ -1,5 +1,8 @@
 # Email Newsletter Service
 
+## Demo
+https://github.com/user-attachments/assets/8a7ce117-1f75-4103-a28d-5be563fa43fc
+
 ## Running it locally
 #### Prerequisites:
 - Docker

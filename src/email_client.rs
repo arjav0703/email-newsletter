@@ -74,7 +74,7 @@ impl EmailClient {
 
         let html_content = format!(
             "Welcome to our newsletter!<br />\
-        Click <a href=\"{}\">here</a> to confirm your subscription.",
+        Click <a href=\"{}\">here</a> to confirm your subscription. <br /> If you did not subscribe to our newsletter, please ignore this email.",
             confirmation_link
         );
 

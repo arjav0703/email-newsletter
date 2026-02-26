@@ -28,9 +28,16 @@ mod routes {
     pub mod unsubscribe;
 }
 use routes::{
-    admin, confirm_subscription::confirm_subsciption, home::home, login, logout::logout,
-    newsletter::publish_newsletter, status::status, subscribe::subscribe_get,
-    subscribe::subscribe_post, unsubscribe::unsubscribe_get,
+    admin,
+    confirm_subscription::confirm_subsciption,
+    home::home,
+    login,
+    logout::logout,
+    newsletter::publish_newsletter,
+    status::status,
+    subscribe::subscribe_get,
+    subscribe::subscribe_post,
+    unsubscribe::{unsubscribe_get, unsubscribe_post},
 };
 use sqlx::PgPool;
 
@@ -67,6 +74,7 @@ pub async fn run(
             .route("/login", web::get().to(login::login_get))
             .route("/logout", web::get().to(logout))
             .route("/unsubscribe", web::get().to(unsubscribe_get))
+            .route("/unsubscribe", web::post().to(unsubscribe_post))
             .route("/admin/dashboard", web::get().to(admin::dashboard))
             .route("/admin/password", web::get().to(admin::password_get))
             .route("/admin/newsletter", web::get().to(admin::newsletter_get))

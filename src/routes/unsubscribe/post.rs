@@ -9,6 +9,10 @@ pub struct Formdata {
     email: String,
 }
 
+#[tracing::instrument(
+    name = "Processing unsubscribe request",
+    skip(formdata, email_client, connection)
+)]
 pub async fn unsubscribe_post(
     formdata: web::Form<Formdata>,
     email_client: web::Data<EmailClient>,
@@ -30,6 +34,10 @@ pub async fn unsubscribe_post(
     Ok(HttpResponse::Ok().finish())
 }
 
+#[tracing::instrument(
+    name = "Storing unsubscribe token in the database",
+    skip(connection, email, token)
+)]
 async fn store_token(
     connection: &sqlx::PgPool,
     email: &SubscriberEmail,
@@ -68,14 +76,14 @@ impl EmailClient {
         token: Secret<String>,
     ) -> Result<(), resend_rs::Error> {
         let unsubscribe_link = format!(
-            "{}/unsubscribe?subscription_token={}",
+            "{}/unsubscribe?unsubscribe_token={}",
             self.base_url(),
             token.expose_secret()
         );
 
         let subject = "Unsubscribe Confirmation";
         let html_content = format!(
-            "<p>Click the link below to unsubscribe/p><p><a href=\"{}\">{}</a></p>",
+            "<p>Click the link below to unsubscribe</p><p><a href=\"{}\">{}</a></p>",
             unsubscribe_link, unsubscribe_link
         );
 

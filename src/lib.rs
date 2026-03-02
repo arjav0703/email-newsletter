@@ -37,7 +37,7 @@ use routes::{
     status::status,
     subscribe::subscribe_get,
     subscribe::subscribe_post,
-    unsubscribe::{unsubscribe_get, unsubscribe_post},
+    unsubscribe::{unsubscribe_form, unsubscribe_get, unsubscribe_post},
 };
 use sqlx::PgPool;
 
@@ -73,6 +73,7 @@ pub async fn run(
             .route("/login", web::post().to(login::login_post))
             .route("/login", web::get().to(login::login_get))
             .route("/logout", web::get().to(logout))
+            .route("/unsubscribe/request", web::get().to(unsubscribe_form))
             .route("/unsubscribe", web::get().to(unsubscribe_get))
             .route("/unsubscribe", web::post().to(unsubscribe_post))
             .route("/admin/dashboard", web::get().to(admin::dashboard))

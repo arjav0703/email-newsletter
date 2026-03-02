@@ -2,7 +2,8 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
+  <meta charset=utf-8">
+  <title>Login</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,22 +21,23 @@
       justify-content: center;
     }
   </style>
-  <title>Home</title>
 </head>
 
 <body>
-  <main>
+  <main class="flex flex-col">
+    <div id="error-container"></div>
     <div
-      class="nes-container is-dark center-container font-['Press_Start_2P'] text-2xl text-center w-7xl leading-relaxed">
-      <h1 class="text-3xl">Email Newsletter Service</h1>
-      <ul>
-        <li><a href="/login">-> Login</a></li>
-        <li><a href="/subscribe">-> Subscribe</a></li>
-        <li><a href="/unsubscribe/request">-> Unsubscribe</a></li>
-        <li><a href="/admin/dashboard">-> Admin Dashboard</a></li>
+      class="nes-container is-dark with-title center-container font-['Press_Start_2P'] w-7xl text-xl leading-relaxed">
+      <p class="title">Email Newsletter Service</p>
+      <ul class="py-3 text-xl">
+        <li><a href="/"><- Back</a></li>
       </ul>
+
+      <h1 class="text-4xl nes-text is-success">Unsubscribe :(</h1>
+      <p class="text-2xl mt-4">You have been unsubscribed from our newsletter. We're sorry to see you go!</p>
     </div>
   </main>
+
 </body>
 
 </html>

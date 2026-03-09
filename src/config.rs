@@ -8,7 +8,13 @@ pub struct Settings {
     pub application_settings: ApplicationSettings,
     pub email_settings: EmailClientSettings,
     pub redis_settings: RedisSettings,
-    pub test_mode: bool,
+    pub super_user: SuperUser,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct SuperUser {
+    pub username: String,
+    pub password: Secret<String>,
 }
 
 #[derive(serde::Deserialize, Debug)]

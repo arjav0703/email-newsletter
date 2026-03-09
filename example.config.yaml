@@ -14,4 +14,6 @@ email_settings:
   resend_api_key: "get from resend.com"
 redis_settings:
   uri: "redis://127.0.0.1:6379"
-test_mode: true
+super_user:
+  username: testuser
+  password: password123

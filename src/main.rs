@@ -1,11 +1,12 @@
 use anyhow::Result;
 use email_newsletter::{
+    auth::Credentials,
     config,
-    domain::add_user::create_test_user,
     email_client::EmailClient,
     run,
     telemetry::{get_subscriber, init_subscriber},
 };
+use secrecy::ExposeSecret;
 use tracing::{error, info};
 
 #[tokio::main]
@@ -29,9 +30,14 @@ async fn main() -> Result<()> {
         e
     })?;
 
-    if config.test_mode {
-        create_test_user(&connection).await?;
-    }
+    let super_user: Credentials = Credentials::from(
+        &config.super_user.username,
+        config.super_user.password.expose_secret(),
+    )?;
+    super_user
+        .add_user_to_db(&connection)
+        .await
+        .unwrap_or_default();
 
     run(&address, connection, email_config, redis_uri)
         .await?

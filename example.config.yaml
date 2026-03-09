@@ -13,5 +13,5 @@ email_settings:
   sender_email: "onboarding@resend.dev"
   resend_api_key: "get from resend.com"
 redis_settings:
-  uri: "redis://redis:6379"
+  uri: "redis://127.0.0.1:6379"
 test_mode: true
